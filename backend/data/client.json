@@ -1,0 +1,84 @@
+{
+  "client_id": "client_001",
+  "home_location_id": "loc_home",
+  "sleep_start": "22:30",
+  "sleep_end": "06:00",
+  "work_start": "09:00",
+  "work_end": "17:00",
+  "work_days": [
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY"
+  ],
+  "recurring_slots": [
+    {
+      "day_of_week": "MONDAY",
+      "start_time": "06:00",
+      "end_time": "22:30"
+    },
+    {
+      "day_of_week": "TUESDAY",
+      "start_time": "06:00",
+      "end_time": "22:30"
+    },
+    {
+      "day_of_week": "WEDNESDAY",
+      "start_time": "06:00",
+      "end_time": "22:30"
+    },
+    {
+      "day_of_week": "THURSDAY",
+      "start_time": "06:00",
+      "end_time": "22:30"
+    },
+    {
+      "day_of_week": "FRIDAY",
+      "start_time": "06:00",
+      "end_time": "22:30"
+    },
+    {
+      "day_of_week": "SATURDAY",
+      "start_time": "06:00",
+      "end_time": "22:30"
+    },
+    {
+      "day_of_week": "SUNDAY",
+      "start_time": "06:00",
+      "end_time": "22:30"
+    }
+  ],
+  "travel_plans": [
+    {
+      "start_date": "2026-06-30",
+      "end_date": "2026-07-04",
+      "destination": "New York City",
+      "adherence": "STRICT",
+      "has_gym_access": true,
+      "has_kitchen_access": false,
+      "remote_consultation_ok": true,
+      "available_equipment": []
+    },
+    {
+      "start_date": "2026-07-25",
+      "end_date": "2026-07-31",
+      "destination": "Bali, Indonesia",
+      "adherence": "FLEXIBLE",
+      "has_gym_access": true,
+      "has_kitchen_access": true,
+      "remote_consultation_ok": true,
+      "available_equipment": []
+    },
+    {
+      "start_date": "2026-08-24",
+      "end_date": "2026-08-26",
+      "destination": "Lake Tahoe",
+      "adherence": "BREAK",
+      "has_gym_access": false,
+      "has_kitchen_access": true,
+      "remote_consultation_ok": false,
+      "available_equipment": []
+    }
+  ]
+}

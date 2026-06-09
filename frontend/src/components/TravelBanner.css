@@ -1,0 +1,43 @@
+/* ═══════════════════════════════════════════════════════════
+ *  TravelBanner.css — All-day travel event
+ * ═══════════════════════════════════════════════════════════ */
+
+.travel-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 2px 8px;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(0, 188, 212, 0.85), rgba(0, 150, 170, 0.9));
+  color: #fff;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.travel-banner:hover {
+  opacity: 0.9;
+}
+
+.travel-banner__icon {
+  font-size: 0.85rem;
+}
+
+.travel-banner__destination {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.travel-banner__adherence {
+  margin-left: auto;
+  font-size: 0.6rem;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

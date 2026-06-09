@@ -1,0 +1,59 @@
+# Secrets & credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+*.egg
+pip-wheel-metadata/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Node / frontend artifacts
+node_modules/
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+.eslintcache
+.parcel-cache/
+.vite/
+
+# Editor & OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Test & coverage output
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Generated output
+output/

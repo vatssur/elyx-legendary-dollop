@@ -1,0 +1,23 @@
+/* ═══════════════════════════════════════════════════════════
+ *  Calendar.css — Main calendar wrapper
+ * ═══════════════════════════════════════════════════════════ */
+
+.calendar-wrapper {
+  flex: 1;
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  padding: var(--space-sm);
+  overflow: hidden;
+  min-height: 600px;
+}
+
+.calendar-wrapper .rbc-time-view,
+.calendar-wrapper .rbc-month-view {
+  border-color: var(--border-primary) !important;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}

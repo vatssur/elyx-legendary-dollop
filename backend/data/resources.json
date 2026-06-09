@@ -1,0 +1,270 @@
+{
+  "resources": [
+    {
+      "id": "res_001",
+      "name": "Dr. Sarah Chen",
+      "resource_type": "SPECIALIST",
+      "specializations": [
+        "cardiology",
+        "internal_medicine"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_clinic_a"
+    },
+    {
+      "id": "res_002",
+      "name": "Dr. James Wilson",
+      "resource_type": "SPECIALIST",
+      "specializations": [
+        "dermatology"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_clinic_a"
+    },
+    {
+      "id": "res_003",
+      "name": "Dr. Priya Patel",
+      "resource_type": "SPECIALIST",
+      "specializations": [
+        "sleep_medicine"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_clinic_b"
+    },
+    {
+      "id": "res_004",
+      "name": "Dr. Michael Torres",
+      "resource_type": "SPECIALIST",
+      "specializations": [
+        "psychiatry",
+        "mental_health"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_clinic_a"
+    },
+    {
+      "id": "res_005",
+      "name": "Dr. Emily Nakamura",
+      "resource_type": "SPECIALIST",
+      "specializations": [
+        "endocrinology"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_clinic_b"
+    },
+    {
+      "id": "res_006",
+      "name": "Dr. Robert Kim",
+      "resource_type": "SPECIALIST",
+      "specializations": [
+        "orthopedics"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_clinic_a"
+    },
+    {
+      "id": "res_007",
+      "name": "Lisa Thompson",
+      "resource_type": "ALLIED_HEALTH",
+      "specializations": [
+        "physiotherapy",
+        "sports_rehab"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_clinic_a"
+    },
+    {
+      "id": "res_008",
+      "name": "David Okonkwo",
+      "resource_type": "ALLIED_HEALTH",
+      "specializations": [
+        "nutrition",
+        "dietetics"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_clinic_b"
+    },
+    {
+      "id": "res_009",
+      "name": "Maria Santos",
+      "resource_type": "ALLIED_HEALTH",
+      "specializations": [
+        "massage",
+        "myofascial_release"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_clinic_a"
+    },
+    {
+      "id": "res_010",
+      "name": "Alex Petrov",
+      "resource_type": "ALLIED_HEALTH",
+      "specializations": [
+        "acupuncture",
+        "tcm"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_clinic_b"
+    },
+    {
+      "id": "res_011",
+      "name": "Rachel Green",
+      "resource_type": "ALLIED_HEALTH",
+      "specializations": [
+        "occupational_therapy"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_clinic_a"
+    },
+    {
+      "id": "res_012",
+      "name": "Mike Johnson",
+      "resource_type": "TRAINER",
+      "specializations": [
+        "strength",
+        "hiit",
+        "general_fitness"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_gym"
+    },
+    {
+      "id": "res_013",
+      "name": "Sara Williams",
+      "resource_type": "TRAINER",
+      "specializations": [
+        "yoga",
+        "flexibility",
+        "mobility"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_gym"
+    },
+    {
+      "id": "res_014",
+      "name": "Chris Andersen",
+      "resource_type": "TRAINER",
+      "specializations": [
+        "swimming",
+        "endurance"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_pool"
+    },
+    {
+      "id": "res_015",
+      "name": "Aisha Rahman",
+      "resource_type": "TRAINER",
+      "specializations": [
+        "cycling",
+        "cardio",
+        "zone2"
+      ],
+      "remote_capable": true,
+      "location_id": "loc_gym"
+    },
+    {
+      "id": "res_016",
+      "name": "Infrared Sauna",
+      "resource_type": "EQUIPMENT",
+      "specializations": [
+        "sauna",
+        "heat_therapy"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_gym"
+    },
+    {
+      "id": "res_017",
+      "name": "Cold Plunge Pool",
+      "resource_type": "EQUIPMENT",
+      "specializations": [
+        "ice_bath",
+        "cold_therapy"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_gym"
+    },
+    {
+      "id": "res_018",
+      "name": "Red Light Panel",
+      "resource_type": "EQUIPMENT",
+      "specializations": [
+        "red_light",
+        "photobiomodulation"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_home"
+    },
+    {
+      "id": "res_019",
+      "name": "Squat Rack + Barbell",
+      "resource_type": "EQUIPMENT",
+      "specializations": [
+        "strength",
+        "powerlifting"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_gym"
+    },
+    {
+      "id": "res_020",
+      "name": "Spin Bike",
+      "resource_type": "EQUIPMENT",
+      "specializations": [
+        "cycling",
+        "cardio"
+      ],
+      "remote_capable": false,
+      "location_id": "loc_gym"
+    },
+    {
+      "id": "loc_home",
+      "name": "Home",
+      "resource_type": "LOCATION",
+      "specializations": [],
+      "remote_capable": false,
+      "location_id": null
+    },
+    {
+      "id": "loc_gym",
+      "name": "FitLife Gym",
+      "resource_type": "LOCATION",
+      "specializations": [],
+      "remote_capable": false,
+      "location_id": null
+    },
+    {
+      "id": "loc_pool",
+      "name": "AquaCenter Pool",
+      "resource_type": "LOCATION",
+      "specializations": [],
+      "remote_capable": false,
+      "location_id": null
+    },
+    {
+      "id": "loc_clinic_a",
+      "name": "Wellness Clinic A",
+      "resource_type": "LOCATION",
+      "specializations": [],
+      "remote_capable": false,
+      "location_id": null
+    },
+    {
+      "id": "loc_clinic_b",
+      "name": "Wellness Clinic B",
+      "resource_type": "LOCATION",
+      "specializations": [],
+      "remote_capable": false,
+      "location_id": null
+    },
+    {
+      "id": "loc_outdoors",
+      "name": "Outdoor Trail",
+      "resource_type": "LOCATION",
+      "specializations": [],
+      "remote_capable": false,
+      "location_id": null
+    }
+  ]
+}

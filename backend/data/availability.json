@@ -1,0 +1,1618 @@
+{
+  "availability": [
+    {
+      "resource_id": "res_001",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-26",
+          "end_date": "2026-06-26",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-08-31",
+          "end_date": "2026-08-31",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-09-06",
+          "end_date": "2026-09-07",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-07-13",
+          "end_date": "2026-07-13",
+          "available": false,
+          "reason": "Training"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_002",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-15",
+          "end_date": "2026-06-16",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-09-12",
+          "end_date": "2026-09-12",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-07-04",
+          "end_date": "2026-07-04",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-28",
+          "end_date": "2026-07-28",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-06-27",
+          "end_date": "2026-06-27",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-08-31",
+          "end_date": "2026-08-31",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-08-12",
+          "end_date": "2026-08-12",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-06-25",
+          "end_date": "2026-06-25",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-09-03",
+          "end_date": "2026-09-04",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-31",
+          "end_date": "2026-07-31",
+          "available": false,
+          "reason": "Facility closed"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_003",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-20",
+          "end_date": "2026-06-21",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-22",
+          "end_date": "2026-07-26",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-14",
+          "end_date": "2026-07-16",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-07-20",
+          "end_date": "2026-07-20",
+          "available": false,
+          "reason": "Vacation"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_004",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-07-05",
+          "end_date": "2026-07-05",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-09-08",
+          "end_date": "2026-09-08",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-09-05",
+          "end_date": "2026-09-05",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-07-06",
+          "end_date": "2026-07-06",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-08-13",
+          "end_date": "2026-08-13",
+          "available": false,
+          "reason": "Facility closed"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_005",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-08-25",
+          "end_date": "2026-08-25",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-06-22",
+          "end_date": "2026-06-22",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-07-25",
+          "end_date": "2026-07-25",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-07-12",
+          "end_date": "2026-07-14",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-09-06",
+          "end_date": "2026-09-06",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-08-12",
+          "end_date": "2026-08-12",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-07-16",
+          "end_date": "2026-07-17",
+          "available": false,
+          "reason": "Equipment maintenance"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_006",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-08-28",
+          "end_date": "2026-08-28",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-08-05",
+          "end_date": "2026-08-05",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-08-19",
+          "end_date": "2026-08-19",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-06-21",
+          "end_date": "2026-06-23",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-09-03",
+          "end_date": "2026-09-03",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-08-08",
+          "end_date": "2026-08-08",
+          "available": false,
+          "reason": "Personal day"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_007",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-08-30",
+          "end_date": "2026-09-03",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-07-17",
+          "end_date": "2026-07-21",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-06-16",
+          "end_date": "2026-06-17",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-09-10",
+          "end_date": "2026-09-12",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-19",
+          "end_date": "2026-07-20",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-06-29",
+          "end_date": "2026-06-29",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-08-12",
+          "end_date": "2026-08-12",
+          "available": false,
+          "reason": "Facility closed"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_008",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-07-18",
+          "end_date": "2026-07-22",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-07",
+          "end_date": "2026-07-07",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-09-03",
+          "end_date": "2026-09-03",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-08-18",
+          "end_date": "2026-08-19",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-08-01",
+          "end_date": "2026-08-02",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-08-21",
+          "end_date": "2026-08-23",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-07-26",
+          "end_date": "2026-07-26",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-07-31",
+          "end_date": "2026-08-02",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-24",
+          "end_date": "2026-07-24",
+          "available": false,
+          "reason": "Conference"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_009",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-25",
+          "end_date": "2026-06-25",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-06-23",
+          "end_date": "2026-06-27",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-07-01",
+          "end_date": "2026-07-01",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-08-24",
+          "end_date": "2026-08-24",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-08-31",
+          "end_date": "2026-08-31",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-08-23",
+          "end_date": "2026-08-24",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-07-10",
+          "end_date": "2026-07-11",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-09-08",
+          "end_date": "2026-09-09",
+          "available": false,
+          "reason": "Personal day"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_010",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-08-11",
+          "end_date": "2026-08-11",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-06-23",
+          "end_date": "2026-06-23",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-08-24",
+          "end_date": "2026-08-24",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-06-15",
+          "end_date": "2026-06-15",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-06-22",
+          "end_date": "2026-06-22",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-07-27",
+          "end_date": "2026-07-27",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-07-20",
+          "end_date": "2026-07-21",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-08-23",
+          "end_date": "2026-08-23",
+          "available": false,
+          "reason": "Equipment maintenance"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_011",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "09:00",
+          "end_time": "17:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-08-14",
+          "end_date": "2026-08-14",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-08-06",
+          "end_date": "2026-08-06",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-09-07",
+          "end_date": "2026-09-07",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-08-13",
+          "end_date": "2026-08-15",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-09-09",
+          "end_date": "2026-09-10",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-06-27",
+          "end_date": "2026-06-27",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-07-28",
+          "end_date": "2026-07-30",
+          "available": false,
+          "reason": "Holiday"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_012",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "08:00",
+          "end_time": "13:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-07-09",
+          "end_date": "2026-07-09",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-07-02",
+          "end_date": "2026-07-02",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-08-13",
+          "end_date": "2026-08-13",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-08-10",
+          "end_date": "2026-08-12",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-08-24",
+          "end_date": "2026-08-24",
+          "available": false,
+          "reason": "Facility closed"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_013",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "08:00",
+          "end_time": "13:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-16",
+          "end_date": "2026-06-20",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-15",
+          "end_date": "2026-07-15",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-08-15",
+          "end_date": "2026-08-15",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-06-22",
+          "end_date": "2026-06-22",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-08-03",
+          "end_date": "2026-08-03",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-08-12",
+          "end_date": "2026-08-12",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-08-25",
+          "end_date": "2026-08-26",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-07-04",
+          "end_date": "2026-07-04",
+          "available": false,
+          "reason": "Conference"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_014",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "08:00",
+          "end_time": "13:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-08-28",
+          "end_date": "2026-08-29",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-07-25",
+          "end_date": "2026-07-25",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-08-15",
+          "end_date": "2026-08-15",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-08-21",
+          "end_date": "2026-08-21",
+          "available": false,
+          "reason": "Equipment maintenance"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_015",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "12:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "16:00",
+          "end_time": "20:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "08:00",
+          "end_time": "13:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-07-08",
+          "end_date": "2026-07-08",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-09-09",
+          "end_date": "2026-09-11",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-06-30",
+          "end_date": "2026-07-02",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-07-16",
+          "end_date": "2026-07-16",
+          "available": false,
+          "reason": "Holiday"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_016",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SUNDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-25",
+          "end_date": "2026-06-25",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-08-26",
+          "end_date": "2026-08-26",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-07-11",
+          "end_date": "2026-07-12",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-07-15",
+          "end_date": "2026-07-15",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-09-08",
+          "end_date": "2026-09-09",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-07-25",
+          "end_date": "2026-07-27",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-06-16",
+          "end_date": "2026-06-16",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-06-27",
+          "end_date": "2026-06-27",
+          "available": false,
+          "reason": "Conference"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_017",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SUNDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-07-18",
+          "end_date": "2026-07-18",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-06-23",
+          "end_date": "2026-06-25",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-07-21",
+          "end_date": "2026-07-21",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-08-23",
+          "end_date": "2026-08-24",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-09-06",
+          "end_date": "2026-09-06",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-08-24",
+          "end_date": "2026-08-24",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-06-28",
+          "end_date": "2026-06-30",
+          "available": false,
+          "reason": "Conference"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_018",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SUNDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-28",
+          "end_date": "2026-06-29",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-07-19",
+          "end_date": "2026-07-19",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-07-28",
+          "end_date": "2026-07-28",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-07-18",
+          "end_date": "2026-07-18",
+          "available": false,
+          "reason": "Training"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_019",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SUNDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-21",
+          "end_date": "2026-06-21",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-07-20",
+          "end_date": "2026-07-20",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-07-01",
+          "end_date": "2026-07-02",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-07-05",
+          "end_date": "2026-07-06",
+          "available": false,
+          "reason": "Equipment maintenance"
+        },
+        {
+          "start_date": "2026-08-08",
+          "end_date": "2026-08-08",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-06-24",
+          "end_date": "2026-06-26",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-07-04",
+          "end_date": "2026-07-04",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-08-01",
+          "end_date": "2026-08-01",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-08-09",
+          "end_date": "2026-08-09",
+          "available": false,
+          "reason": "Training"
+        },
+        {
+          "start_date": "2026-07-31",
+          "end_date": "2026-08-02",
+          "available": false,
+          "reason": "Vacation"
+        }
+      ]
+    },
+    {
+      "resource_id": "res_020",
+      "recurring_slots": [
+        {
+          "day_of_week": "MONDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "TUESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "WEDNESDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "THURSDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "FRIDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SATURDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        },
+        {
+          "day_of_week": "SUNDAY",
+          "start_time": "06:00",
+          "end_time": "22:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "start_date": "2026-06-20",
+          "end_date": "2026-06-22",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-09-10",
+          "end_date": "2026-09-10",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-07-30",
+          "end_date": "2026-07-31",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-08-06",
+          "end_date": "2026-08-10",
+          "available": false,
+          "reason": "Facility closed"
+        },
+        {
+          "start_date": "2026-07-04",
+          "end_date": "2026-07-06",
+          "available": false,
+          "reason": "Conference"
+        },
+        {
+          "start_date": "2026-07-05",
+          "end_date": "2026-07-09",
+          "available": false,
+          "reason": "Vacation"
+        },
+        {
+          "start_date": "2026-07-07",
+          "end_date": "2026-07-09",
+          "available": false,
+          "reason": "Holiday"
+        },
+        {
+          "start_date": "2026-07-27",
+          "end_date": "2026-07-28",
+          "available": false,
+          "reason": "Personal day"
+        },
+        {
+          "start_date": "2026-09-08",
+          "end_date": "2026-09-10",
+          "available": false,
+          "reason": "Vacation"
+        }
+      ]
+    }
+  ]
+}

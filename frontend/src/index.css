@@ -1,0 +1,312 @@
+/* ═══════════════════════════════════════════════════════════
+ *  GLOBAL STYLES — Health Resource Allocator
+ *
+ *  Design System: Dark mode, glassmorphism, Inter font
+ *  Color palette derived from activity type colors.
+ * ═══════════════════════════════════════════════════════════ */
+
+/* ── CSS Custom Properties ─────────────────────────── */
+:root {
+  /* Background */
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --bg-tertiary: #16213e;
+  --bg-card: rgba(26, 26, 46, 0.7);
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --bg-glass-hover: rgba(255, 255, 255, 0.06);
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+
+  /* Text */
+  --text-primary: #e8e8f0;
+  --text-secondary: #a0a0b8;
+  --text-muted: #6b6b80;
+  --text-accent: #7c83ff;
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --border-accent: rgba(124, 131, 255, 0.3);
+
+  /* Activity Colors */
+  --color-fitness: #4CAF50;
+  --color-food: #FF9800;
+  --color-medication: #2196F3;
+  --color-therapy: #9C27B0;
+  --color-consultation: #F44336;
+  --color-prep: #78909C;
+  --color-transit: #607D8B;
+  --color-travel: #00BCD4;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(124, 131, 255, 0.15);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Font */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Spacing */
+  --sidebar-width: 340px;
+  --header-height: 68px;
+}
+
+/* ── Reset ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated gradient background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 20% 0%, rgba(124, 131, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(76, 175, 80, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(33, 150, 243, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* ── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── React Big Calendar Overrides ──────────────────── */
+.rbc-calendar {
+  font-family: var(--font-sans) !important;
+  background: transparent !important;
+}
+
+.rbc-toolbar {
+  display: none !important; /* We use our own toolbar */
+}
+
+.rbc-month-view,
+.rbc-time-view {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.rbc-header {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 10px 4px !important;
+}
+
+.rbc-header + .rbc-header {
+  border-left: 1px solid var(--border-subtle) !important;
+}
+
+.rbc-time-header-cell .rbc-header {
+  padding: 8px 4px !important;
+}
+
+.rbc-today {
+  background: rgba(124, 131, 255, 0.06) !important;
+}
+
+.rbc-off-range-bg {
+  background: rgba(0, 0, 0, 0.15) !important;
+}
+
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid var(--border-subtle) !important;
+}
+
+.rbc-month-row + .rbc-month-row {
+  border-top: 1px solid var(--border-subtle) !important;
+}
+
+/* Time view */
+.rbc-time-content {
+  border-top: 1px solid var(--border-subtle) !important;
+}
+
+.rbc-time-gutter .rbc-timeslot-group {
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.rbc-time-slot {
+  border-top: none !important;
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  min-height: 60px !important;
+}
+
+.rbc-time-gutter .rbc-label {
+  color: var(--text-muted) !important;
+  font-size: 0.7rem !important;
+  font-weight: 500 !important;
+  padding: 0 8px !important;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid rgba(255, 255, 255, 0.02) !important;
+}
+
+.rbc-time-column {
+  border-left: 1px solid var(--border-subtle) !important;
+}
+
+.rbc-current-time-indicator {
+  background-color: var(--color-medication) !important;
+  height: 2px !important;
+}
+
+.rbc-current-time-indicator::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-medication);
+}
+
+/* Events */
+.rbc-event {
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 2px 6px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.rbc-event:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-md) !important;
+  z-index: 10 !important;
+}
+
+.rbc-event-label {
+  display: none !important;
+}
+
+.rbc-event-content {
+  font-size: 0.72rem !important;
+  line-height: 1.3 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.rbc-event.rbc-selected {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4), var(--shadow-md) !important;
+}
+
+/* All day row */
+.rbc-allday-cell {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.rbc-row-segment {
+  padding: 1px 2px !important;
+}
+
+.rbc-show-more {
+  color: var(--text-accent) !important;
+  font-weight: 600 !important;
+  font-size: 0.7rem !important;
+}
+
+/* Date cells */
+.rbc-date-cell {
+  color: var(--text-secondary) !important;
+  font-size: 0.8rem !important;
+  padding: 4px 8px !important;
+  font-weight: 500 !important;
+}
+
+.rbc-date-cell.rbc-now {
+  color: var(--text-accent) !important;
+  font-weight: 700 !important;
+}
+
+/* ── Loading Animation ─────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
