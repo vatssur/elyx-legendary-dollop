@@ -11,29 +11,36 @@ Covers:
   - Variant activity_type preservation
 """
 
+from typing import Any
+
 import pytest
 from data_generator import (
     load_templates,
     generate_resources,
     generate_activities,
 )
-from models import ActivityType, FrequencyPeriod, ResourceType
+from models import (
+    ActivityType,
+    FrequencyPeriod,
+    Resource,
+    ResourceType,
+)
 
 
 @pytest.fixture
-def templates():
+def templates() -> dict[str, Any]:
     """Load templates once for all tests."""
     return load_templates()
 
 
 @pytest.fixture
-def resources(templates):
+def resources(templates: dict[str, Any]) -> list[Resource]:
     """Generate resources once for all tests."""
     return generate_resources(templates)
 
 
 @pytest.fixture
-def generated(templates, resources):
+def generated(templates: dict[str, Any], resources: list[Resource]) -> tuple[Any, Any]:
     """Generate all activities and plan_ids."""
     return generate_activities(templates, resources)
 
@@ -44,10 +51,10 @@ def generated(templates, resources):
 
 
 class TestResourceGeneration:
-    def test_resources_not_empty(self, resources):
+    def test_resources_not_empty(self, resources: list[Resource]) -> None:
         assert len(resources) > 0
 
-    def test_all_required_resource_types_present(self, resources):
+    def test_all_required_resource_types_present(self, resources: list[Resource]) -> None:
         types = {r.resource_type for r in resources}
         expected = {
             ResourceType.SPECIALIST,
@@ -58,7 +65,7 @@ class TestResourceGeneration:
         }
         assert expected.issubset(types)
 
-    def test_resources_have_valid_ids(self, resources):
+    def test_resources_have_valid_ids(self, resources: list[Resource]) -> None:
         ids = [r.id for r in resources]
         assert len(ids) == len(set(ids)), "Resource IDs must be unique"
         for rid in ids:
@@ -71,26 +78,25 @@ class TestResourceGeneration:
 
 
 class TestActivityGeneration:
-    def test_generates_50_plus_activities(self, generated):
+    def test_generates_50_plus_activities(self, generated: tuple[Any, Any]) -> None:
         activities, _ = generated
         assert len(activities) >= 50, (
             f"Expected 50+ activities, got {len(activities)}"
         )
 
-    def test_all_five_activity_types_present(self, generated):
+    def test_all_five_activity_types_present(self, generated: tuple[Any, Any]) -> None:
         activities, _ = generated
         types = {a.activity_type for a in activities}
         for at in ActivityType:
             assert at in types, f"Missing activity type: {at.value}"
 
-    def test_variant_activity_type_preserved(self, generated):
+    def test_variant_activity_type_preserved(self, generated: tuple[Any, Any]) -> None:
         """Variants must inherit the base activity's type, not be hardcoded FITNESS."""
         activities, _ = generated
         variants = [a for a in activities if "- Beginner" in a.name or "- Advanced" in a.name]
         assert len(variants) > 0, "Should have generated variants"
 
         for v in variants:
-            # Find the base name (strip suffix)
             base_name = v.name.split(" - ")[0]
             base = next((a for a in activities if a.name == base_name), None)
             if base:
@@ -99,12 +105,12 @@ class TestActivityGeneration:
                     f"but base '{base.name}' has type {base.activity_type.value}"
                 )
 
-    def test_all_activities_have_subtype(self, generated):
+    def test_all_activities_have_subtype(self, generated: tuple[Any, Any]) -> None:
         activities, _ = generated
         for act in activities:
             assert act.subtype, f"Activity '{act.name}' has empty subtype"
 
-    def test_unique_activity_ids(self, generated):
+    def test_unique_activity_ids(self, generated: tuple[Any, Any]) -> None:
         activities, _ = generated
         ids = [a.id for a in activities]
         assert len(ids) == len(set(ids)), "Activity IDs must be unique"
@@ -116,11 +122,11 @@ class TestActivityGeneration:
 
 
 class TestActionPlanCuration:
-    def test_exactly_26_activities(self, generated):
+    def test_exactly_26_activities(self, generated: tuple[Any, Any]) -> None:
         activities, plan_ids = generated
         assert len(plan_ids) == 26
 
-    def test_all_8_medications_present(self, generated):
+    def test_all_8_medications_present(self, generated: tuple[Any, Any]) -> None:
         """All medications are marked is_necessary=True and must all appear."""
         activities, plan_ids = generated
         action_plan = [a for a in activities if a.id in plan_ids]
@@ -130,7 +136,7 @@ class TestActionPlanCuration:
             f"{[m.name for m in meds]}"
         )
 
-    def test_all_3_meal_anchors_present(self, generated):
+    def test_all_3_meal_anchors_present(self, generated: tuple[Any, Any]) -> None:
         """Breakfast, lunch, dinner must all appear (necessary subtypes)."""
         activities, plan_ids = generated
         action_plan = [a for a in activities if a.id in plan_ids]
@@ -142,26 +148,25 @@ class TestActionPlanCuration:
             f"Missing meal anchors: {{'breakfast','lunch','dinner'}} - {meal_subtypes}"
         )
 
-    def test_necessary_subtypes_have_exactly_one(self, generated):
+    def test_necessary_subtypes_have_exactly_one(self, generated: tuple[Any, Any]) -> None:
         """Each necessary subtype must have exactly 1 representative."""
         activities, plan_ids = generated
         action_plan = [a for a in activities if a.id in plan_ids]
         necessary = [a for a in action_plan if a.is_necessary]
         necessary_subtypes = [a.subtype for a in necessary]
-        # Each should appear exactly once
         for subtype in set(necessary_subtypes):
             count = necessary_subtypes.count(subtype)
             assert count == 1, (
                 f"Necessary subtype '{subtype}' has {count} entries (expected 1)"
             )
 
-    def test_optional_dual_variants_frequency_constraint(self, generated):
+    def test_optional_dual_variants_frequency_constraint(self, generated: tuple[Any, Any]) -> None:
         """If two variants of the same optional subtype are picked,
         neither should be DAILY and their combined frequency must be <= 7."""
         activities, plan_ids = generated
         action_plan = [a for a in activities if a.id in plan_ids]
         optional = [a for a in action_plan if not a.is_necessary]
-        subtype_groups: dict[str, list] = {}
+        subtype_groups: dict[str, list[Any]] = {}
         for a in optional:
             subtype_groups.setdefault(a.subtype, []).append(a)
 
@@ -183,15 +188,14 @@ class TestActionPlanCuration:
 
 
 class TestBackupWiring:
-    def test_action_plan_activities_have_backups(self, generated):
+    def test_action_plan_activities_have_backups(self, generated: tuple[Any, Any]) -> None:
         """Activities with same-subtype variants should have backup IDs."""
         activities, plan_ids = generated
         action_plan = [a for a in activities if a.id in plan_ids]
         has_backups = [a for a in action_plan if a.backup_activity_ids]
-        # At least some should have backups (meals, fitness, etc.)
         assert len(has_backups) > 0, "No activities have backup_activity_ids"
 
-    def test_medications_have_no_backups(self, generated):
+    def test_medications_have_no_backups(self, generated: tuple[Any, Any]) -> None:
         """Medications have unique subtypes (med_0..med_7), so no backups possible."""
         activities, plan_ids = generated
         action_plan = [a for a in activities if a.id in plan_ids]
@@ -201,7 +205,7 @@ class TestBackupWiring:
                 f"Medication '{med.name}' should not have backups, got {med.backup_activity_ids}"
             )
 
-    def test_backup_ids_reference_valid_activities(self, generated):
+    def test_backup_ids_reference_valid_activities(self, generated: tuple[Any, Any]) -> None:
         """All backup IDs must reference activities in the full pool."""
         activities, plan_ids = generated
         action_plan = [a for a in activities if a.id in plan_ids]
@@ -212,7 +216,7 @@ class TestBackupWiring:
                     f"Backup ID '{backup_id}' for '{act.name}' not found in activity pool"
                 )
 
-    def test_backup_ids_share_subtype_with_parent(self, generated):
+    def test_backup_ids_share_subtype_with_parent(self, generated: tuple[Any, Any]) -> None:
         """Backup activities must have the same subtype as the parent."""
         activities, plan_ids = generated
         action_plan = [a for a in activities if a.id in plan_ids]

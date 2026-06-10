@@ -120,35 +120,23 @@ def _make_ctx(
 
 
 class TestInferMealType:
-    def test_breakfast(self):
-        class DummyAct:
-            subtype = "breakfast"
-        assert _infer_meal_type(DummyAct()) == MealType.BREAKFAST
+    def test_breakfast(self) -> None:
+        assert _infer_meal_type(_make_activity(subtype="breakfast")) == MealType.BREAKFAST
 
-    def test_lunch(self):
-        class DummyAct:
-            subtype = "lunch"
-        assert _infer_meal_type(DummyAct()) == MealType.LUNCH
+    def test_lunch(self) -> None:
+        assert _infer_meal_type(_make_activity(subtype="lunch")) == MealType.LUNCH
 
-    def test_dinner(self):
-        class DummyAct:
-            subtype = "dinner"
-        assert _infer_meal_type(DummyAct()) == MealType.DINNER
+    def test_dinner(self) -> None:
+        assert _infer_meal_type(_make_activity(subtype="dinner")) == MealType.DINNER
 
-    def test_snack_returns_any(self):
-        class DummyAct:
-            subtype = "snack"
-        assert _infer_meal_type(DummyAct()) == MealType.ANY
+    def test_snack_returns_any(self) -> None:
+        assert _infer_meal_type(_make_activity(subtype="snack")) == MealType.ANY
 
-    def test_unknown_subtype_returns_any(self):
-        class DummyAct:
-            subtype = "protein_shake"
-        assert _infer_meal_type(DummyAct()) == MealType.ANY
+    def test_unknown_subtype_returns_any(self) -> None:
+        assert _infer_meal_type(_make_activity(subtype="protein_shake")) == MealType.ANY
 
-    def test_case_insensitive(self):
-        class DummyAct:
-            subtype = "BREAKFAST"
-        assert _infer_meal_type(DummyAct()) == MealType.BREAKFAST
+    def test_case_insensitive(self) -> None:
+        assert _infer_meal_type(_make_activity(subtype="BREAKFAST")) == MealType.BREAKFAST
 
 
 # ═══════════════════════════════════════════════════════════
@@ -157,19 +145,19 @@ class TestInferMealType:
 
 
 class TestSleepBlock:
-    def test_slot_inside_sleep_is_blocked(self):
+    def test_slot_inside_sleep_is_blocked(self) -> None:
         client = _make_client(sleep_start=time(22, 0), sleep_end=time(6, 0))
         assert _is_in_sleep_block(client, time(23, 0), time(23, 30)) is True
 
-    def test_slot_before_sleep_end_is_blocked(self):
+    def test_slot_before_sleep_end_is_blocked(self) -> None:
         client = _make_client(sleep_start=time(22, 0), sleep_end=time(6, 0))
         assert _is_in_sleep_block(client, time(5, 0), time(5, 30)) is True
 
-    def test_slot_outside_sleep_is_allowed(self):
+    def test_slot_outside_sleep_is_allowed(self) -> None:
         client = _make_client(sleep_start=time(22, 0), sleep_end=time(6, 0))
         assert _is_in_sleep_block(client, time(10, 0), time(10, 30)) is False
 
-    def test_slot_at_sleep_end_boundary(self):
+    def test_slot_at_sleep_end_boundary(self) -> None:
         client = _make_client(sleep_start=time(22, 0), sleep_end=time(6, 0))
         # 6:00 - 6:30 should be allowed (starts exactly at sleep end)
         assert _is_in_sleep_block(client, time(6, 0), time(6, 30)) is False
@@ -181,11 +169,11 @@ class TestSleepBlock:
 
 
 class TestOverlapDetection:
-    def test_no_overlap_with_empty_schedule(self):
+    def test_no_overlap_with_empty_schedule(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         assert _overlaps_existing(day, time(9, 0), time(10, 0)) is False
 
-    def test_overlap_detected(self):
+    def test_overlap_detected(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY, activity_id="a",
@@ -194,7 +182,7 @@ class TestOverlapDetection:
         ))
         assert _overlaps_existing(day, time(9, 30), time(10, 30)) is True
 
-    def test_adjacent_no_overlap(self):
+    def test_adjacent_no_overlap(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY, activity_id="a",
@@ -204,7 +192,7 @@ class TestOverlapDetection:
         # Slot starts exactly when existing ends — no overlap
         assert _overlaps_existing(day, time(10, 0), time(11, 0)) is False
 
-    def test_travel_day_marker_ignored(self):
+    def test_travel_day_marker_ignored(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
             block_type=ScheduleBlockType.TRAVEL_DAY, activity_id=None,
@@ -221,7 +209,7 @@ class TestOverlapDetection:
 
 
 class TestGapConstraint:
-    def test_zero_gap_always_passes(self):
+    def test_zero_gap_always_passes(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY, activity_id="a",
@@ -230,7 +218,7 @@ class TestGapConstraint:
         ))
         assert _respects_gap(day, time(10, 0), time(11, 0), 0) is True
 
-    def test_insufficient_gap_fails(self):
+    def test_insufficient_gap_fails(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY, activity_id="a",
@@ -240,7 +228,7 @@ class TestGapConstraint:
         # Only 5 min gap but need 15
         assert _respects_gap(day, time(10, 5), time(11, 0), 15) is False
 
-    def test_sufficient_gap_passes(self):
+    def test_sufficient_gap_passes(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY, activity_id="a",
@@ -257,7 +245,7 @@ class TestGapConstraint:
 
 
 class TestSubtypeCollision:
-    def test_same_subtype_limit_enforced(self):
+    def test_same_subtype_limit_enforced(self) -> None:
         """Up to MAX_SAME_SUBTYPE_PER_DAY (2) same-subtype activities allowed per day; third should be blocked."""
         act1 = _make_activity(act_id="a1", subtype="strength", duration=30, earliest=time(7, 0), latest=time(9, 0))
         act2 = _make_activity(act_id="a2", subtype="strength", duration=30, earliest=time(10, 0), latest=time(12, 0))
@@ -277,7 +265,7 @@ class TestSubtypeCollision:
         result3 = _try_schedule_activity(act3, day, target_date, ctx)
         assert result3 is False
 
-    def test_different_subtype_allowed_on_same_day(self):
+    def test_different_subtype_allowed_on_same_day(self) -> None:
         """Activities with different subtypes can schedule on the same day."""
         act1 = _make_activity(act_id="a1", subtype="strength", earliest=time(7, 0), latest=time(9, 0))
         act2 = _make_activity(act_id="a2", subtype="cardio", earliest=time(10, 0), latest=time(12, 0))
@@ -299,7 +287,7 @@ class TestSubtypeCollision:
 
 
 class TestBackupFallback:
-    def test_backup_used_when_primary_fails(self):
+    def test_backup_used_when_primary_fails(self) -> None:
         """When the primary can't fit, a backup with a different subtype should be tried."""
         # Primary: needs a slot at 7-9 AM, 30 min
         primary = _make_activity(
@@ -334,7 +322,7 @@ class TestBackupFallback:
         ]
         assert "backup1" in scheduled_ids
 
-    def test_backup_with_subtype_collision_skipped(self):
+    def test_backup_with_subtype_collision_skipped(self) -> None:
         """Backup should be skipped if its subtype already at limit on the day."""
         existing1 = _make_activity(
             act_id="existing1", subtype="cardio",
@@ -381,7 +369,7 @@ class TestBackupFallback:
 
 
 class TestScheduleGeneration:
-    def test_basic_schedule(self):
+    def test_basic_schedule(self) -> None:
         activities = [
             _make_activity(
                 act_id="act_1", name="Morning Run",
@@ -398,7 +386,7 @@ class TestScheduleGeneration:
         assert schedule.total_scheduled > 0
         assert schedule.total_unscheduled == 0
 
-    def test_empty_activity_list(self):
+    def test_empty_activity_list(self) -> None:
         client = _make_client()
         start = date(2026, 6, 15)
         end = start + timedelta(days=1)
@@ -409,7 +397,7 @@ class TestScheduleGeneration:
         assert schedule.total_scheduled == 0
         assert schedule.total_unscheduled == 0
 
-    def test_medication_always_scheduled_on_travel_break(self):
+    def test_medication_always_scheduled_on_travel_break(self) -> None:
         """Medications must never be skipped, even during BREAK travel mode."""
         med = _make_activity(
             act_id="med_1", name="Daily Pill",
@@ -439,7 +427,7 @@ class TestScheduleGeneration:
         ]
         assert len(activity_blocks) > 0, "Medication must be scheduled even during BREAK"
 
-    def test_non_med_activities_skipped_on_travel_break(self):
+    def test_non_med_activities_skipped_on_travel_break(self) -> None:
         """Non-medication activities should be skipped during BREAK travel mode."""
         fitness = _make_activity(
             act_id="fit_1", name="Run",
@@ -473,11 +461,11 @@ class TestScheduleGeneration:
 
 
 class TestTravelPlanLookup:
-    def test_no_travel_plan_returns_none(self):
+    def test_no_travel_plan_returns_none(self) -> None:
         client = _make_client()
         assert _get_travel_plan(client, date(2026, 6, 15)) is None
 
-    def test_within_travel_period_returns_plan(self):
+    def test_within_travel_period_returns_plan(self) -> None:
         plan = TravelPlan(
             start_date=date(2026, 6, 14),
             end_date=date(2026, 6, 20),
@@ -489,7 +477,7 @@ class TestTravelPlanLookup:
         assert result is not None
         assert result.destination == "Paris"
 
-    def test_on_travel_start_date(self):
+    def test_on_travel_start_date(self) -> None:
         plan = TravelPlan(
             start_date=date(2026, 6, 15),
             end_date=date(2026, 6, 20),
@@ -499,7 +487,7 @@ class TestTravelPlanLookup:
         client = _make_client(travel_plans=[plan])
         assert _get_travel_plan(client, date(2026, 6, 15)) is not None
 
-    def test_on_travel_end_date(self):
+    def test_on_travel_end_date(self) -> None:
         plan = TravelPlan(
             start_date=date(2026, 6, 15),
             end_date=date(2026, 6, 20),
@@ -509,7 +497,7 @@ class TestTravelPlanLookup:
         client = _make_client(travel_plans=[plan])
         assert _get_travel_plan(client, date(2026, 6, 20)) is not None
 
-    def test_before_travel_period_returns_none(self):
+    def test_before_travel_period_returns_none(self) -> None:
         plan = TravelPlan(
             start_date=date(2026, 6, 20),
             end_date=date(2026, 6, 25),
@@ -519,7 +507,7 @@ class TestTravelPlanLookup:
         client = _make_client(travel_plans=[plan])
         assert _get_travel_plan(client, date(2026, 6, 19)) is None
 
-    def test_after_travel_period_returns_none(self):
+    def test_after_travel_period_returns_none(self) -> None:
         plan = TravelPlan(
             start_date=date(2026, 6, 15),
             end_date=date(2026, 6, 18),
@@ -536,12 +524,12 @@ class TestTravelPlanLookup:
 
 
 class TestLastLocation:
-    def test_empty_day_returns_home(self):
+    def test_empty_day_returns_home(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         loc = _get_last_location_before(day, time(10, 0), "home")
         assert loc == "home"
 
-    def test_returns_location_of_last_preceding_block(self):
+    def test_returns_location_of_last_preceding_block(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY,
@@ -552,7 +540,7 @@ class TestLastLocation:
         loc = _get_last_location_before(day, time(10, 0), "home")
         assert loc == "gym"
 
-    def test_skips_transit_blocks(self):
+    def test_skips_transit_blocks(self) -> None:
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
             block_type=ScheduleBlockType.TRANSIT,
@@ -569,7 +557,7 @@ class TestLastLocation:
 
 
 class TestFlexibleTravel:
-    def test_remote_activity_scheduled_during_flexible_travel(self):
+    def test_remote_activity_scheduled_during_flexible_travel(self) -> None:
         """Remote-capable activities should be allowed during FLEXIBLE travel."""
         remote_act = _make_activity(
             act_id="remote_1", name="Online Yoga",
@@ -594,7 +582,7 @@ class TestFlexibleTravel:
         schedule = generate_schedule([remote_act], [], [], client, start, end)
         assert schedule.total_scheduled > 0
 
-    def test_non_remote_activity_unscheduled_during_flexible_travel(self):
+    def test_non_remote_activity_unscheduled_during_flexible_travel(self) -> None:
         """Non-remote activities should be skipped during FLEXIBLE travel."""
         gym_act = _make_activity(
             act_id="gym_1", name="Gym Session",
@@ -626,7 +614,7 @@ class TestFlexibleTravel:
 
 
 class TestMealAndMedicationPhases:
-    def test_all_three_meal_anchors_scheduled(self):
+    def test_all_three_meal_anchors_scheduled(self) -> None:
         """Phase 1: All three meals must land every day."""
         breakfast = _make_activity(
             act_id="bf", name="Breakfast", subtype="breakfast",
@@ -654,7 +642,7 @@ class TestMealAndMedicationPhases:
         assert schedule.total_scheduled == 3
         assert schedule.total_unscheduled == 0
 
-    def test_medication_with_meal_relation_scheduled_relative_to_meal(self):
+    def test_medication_with_meal_relation_scheduled_relative_to_meal(self) -> None:
         """Phase 2: Medications must pin to their meal anchor."""
         breakfast = _make_activity(
             act_id="bf", name="Breakfast", subtype="breakfast",
@@ -691,7 +679,7 @@ class TestMealAndMedicationPhases:
 
 
 class TestWeeklyFrequency:
-    def test_weekly_activity_not_over_scheduled(self):
+    def test_weekly_activity_not_over_scheduled(self) -> None:
         """A 3x/week activity should appear at most 3 times in 7 days."""
         act = _make_activity(
             act_id="a1", name="Swimming",
@@ -721,7 +709,7 @@ class TestWeeklyFrequency:
 
 
 class TestGenerateAllData:
-    def test_generate_all_data_produces_files(self):
+    def test_generate_all_data_produces_files(self) -> None:
         """Smoke test: generate_all_data should produce valid output files."""
         import os
         from data_generator import generate_all_data

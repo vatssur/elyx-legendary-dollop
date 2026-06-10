@@ -1044,16 +1044,16 @@ def _try_week_fallback(
             if day_offset == target_offset:
                 continue
             day = start_of_week + timedelta(days=day_offset)
-            day_sch = day_index.get(day)
-            if day_sch is None or day_sch.travel_adherence == TravelAdherence.BREAK:
+            day_entry = day_index.get(day)
+            if day_entry is None or day_entry.travel_adherence == TravelAdherence.BREAK:
                 continue
 
             if activity.subtype and activity.subtype in scheduled_subtypes.get(day_offset, set()):
                 continue
 
-            slot = _find_slot(activity, day_sch, day, ctx)
+            slot = _find_slot(activity, day_entry, day, ctx)
             if slot is not None:
-                _place_activity(activity, day_sch, slot, ctx)
+                _place_activity(activity, day_entry, slot, ctx)
                 if activity.subtype:
                     scheduled_subtypes.setdefault(day_offset, set()).add(activity.subtype)
                 placed = True
@@ -1073,16 +1073,16 @@ def _try_week_fallback(
                     if day_offset == target_offset:
                         continue
                     day = start_of_week + timedelta(days=day_offset)
-                    day_sch = day_index.get(day)
-                    if day_sch is None or day_sch.travel_adherence == TravelAdherence.BREAK:
+                    day_entry = day_index.get(day)
+                    if day_entry is None or day_entry.travel_adherence == TravelAdherence.BREAK:
                         continue
 
                     if backup_act.subtype and backup_act.subtype in scheduled_subtypes.get(day_offset, set()):
                         continue
 
-                    slot = _find_slot(backup_act, day_sch, day, ctx)
+                    slot = _find_slot(backup_act, day_entry, day, ctx)
                     if slot is not None:
-                        _place_activity(backup_act, day_sch, slot, ctx)
+                        _place_activity(backup_act, day_entry, slot, ctx)
                         if backup_act.subtype:
                             scheduled_subtypes.setdefault(day_offset, set()).add(backup_act.subtype)
                         placed = True

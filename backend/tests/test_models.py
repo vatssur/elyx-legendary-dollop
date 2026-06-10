@@ -36,7 +36,7 @@ from models import (
 
 
 class TestActivity:
-    def test_creation_with_required_fields(self):
+    def test_creation_with_required_fields(self) -> None:
         act = Activity(
             id="act_001",
             name="Test Activity",
@@ -58,7 +58,7 @@ class TestActivity:
         assert act.id == "act_001"
         assert act.activity_type == ActivityType.FITNESS
 
-    def test_default_backup_activity_ids(self):
+    def test_default_backup_activity_ids(self) -> None:
         act = Activity(
             id="act_001", name="Test", activity_type=ActivityType.FITNESS,
             priority=1, duration_minutes=30, frequency_times=1,
@@ -69,7 +69,7 @@ class TestActivity:
         )
         assert act.backup_activity_ids == []
 
-    def test_default_subtype_and_is_necessary(self):
+    def test_default_subtype_and_is_necessary(self) -> None:
         act = Activity(
             id="act_001", name="Test", activity_type=ActivityType.FITNESS,
             priority=1, duration_minutes=30, frequency_times=1,
@@ -81,7 +81,7 @@ class TestActivity:
         assert act.subtype == ""
         assert act.is_necessary is False
 
-    def test_default_metrics_is_empty_list(self):
+    def test_default_metrics_is_empty_list(self) -> None:
         act = Activity(
             id="act_001", name="Test", activity_type=ActivityType.FITNESS,
             priority=1, duration_minutes=30, frequency_times=1,
@@ -92,7 +92,7 @@ class TestActivity:
         )
         assert act.metrics == []
 
-    def test_default_meal_relation(self):
+    def test_default_meal_relation(self) -> None:
         act = Activity(
             id="act_001", name="Test", activity_type=ActivityType.MEDICATION,
             priority=1, duration_minutes=2, frequency_times=1,
@@ -105,7 +105,7 @@ class TestActivity:
         assert act.meal_relation_type == MealType.ANY
         assert act.meal_relation_offset_minutes == 0
 
-    def test_backup_activity_ids_can_be_set(self):
+    def test_backup_activity_ids_can_be_set(self) -> None:
         act = Activity(
             id="act_001", name="Test", activity_type=ActivityType.FITNESS,
             priority=1, duration_minutes=30, frequency_times=1,
@@ -117,7 +117,7 @@ class TestActivity:
         )
         assert act.backup_activity_ids == ["act_002", "act_003"]
 
-    def test_default_list_fields_are_independent(self):
+    def test_default_list_fields_are_independent(self) -> None:
         """Ensure default_factory creates independent lists per instance."""
         a1 = Activity(
             id="act_001", name="A1", activity_type=ActivityType.FITNESS,
@@ -145,7 +145,7 @@ class TestActivity:
 
 
 class TestScheduleBlock:
-    def test_duration_minutes(self):
+    def test_duration_minutes(self) -> None:
         block = ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY,
             activity_id="act_001",
@@ -157,7 +157,7 @@ class TestScheduleBlock:
         )
         assert block.duration_minutes == 45
 
-    def test_activity_color_code(self):
+    def test_activity_color_code(self) -> None:
         block = ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY,
             activity_id="act_001",
@@ -169,7 +169,7 @@ class TestScheduleBlock:
         )
         assert block.color_code == "#4CAF50"
 
-    def test_prep_color_code(self):
+    def test_prep_color_code(self) -> None:
         block = ScheduleBlock(
             block_type=ScheduleBlockType.PREP,
             activity_id=None,
@@ -181,7 +181,7 @@ class TestScheduleBlock:
         )
         assert block.color_code == BLOCK_TYPE_COLOR_MAP[ScheduleBlockType.PREP]
 
-    def test_transit_color_code(self):
+    def test_transit_color_code(self) -> None:
         block = ScheduleBlock(
             block_type=ScheduleBlockType.TRANSIT,
             activity_id=None,
@@ -193,7 +193,7 @@ class TestScheduleBlock:
         )
         assert block.color_code == BLOCK_TYPE_COLOR_MAP[ScheduleBlockType.TRANSIT]
 
-    def test_unique_block_ids(self):
+    def test_unique_block_ids(self) -> None:
         b1 = ScheduleBlock(
             block_type=ScheduleBlockType.ACTIVITY, activity_id="a",
             activity_name="A", activity_type=ActivityType.FITNESS,
@@ -213,12 +213,12 @@ class TestScheduleBlock:
 
 
 class TestFullSchedule:
-    def test_total_days(self):
+    def test_total_days(self) -> None:
         sched = FullSchedule(start_date=date(2026, 6, 15), end_date=date(2026, 6, 16))
         sched.days.append(DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY))
         assert sched.total_days == 1
 
-    def test_total_scheduled_only_counts_activities(self):
+    def test_total_scheduled_only_counts_activities(self) -> None:
         sched = FullSchedule(start_date=date(2026, 6, 15), end_date=date(2026, 6, 16))
         day = DaySchedule(date=date(2026, 6, 15), day_of_week=DayOfWeek.MONDAY)
         day.blocks.append(ScheduleBlock(
@@ -239,7 +239,7 @@ class TestFullSchedule:
         sched.days.append(day)
         assert sched.total_scheduled == 1  # Only ACTIVITY blocks count
 
-    def test_total_unscheduled(self):
+    def test_total_unscheduled(self) -> None:
         sched = FullSchedule(start_date=date(2026, 6, 15), end_date=date(2026, 6, 16))
         sched.unscheduled.append(UnscheduledActivity(
             activity_id="a1", activity_name="A1",
@@ -249,7 +249,7 @@ class TestFullSchedule:
         ))
         assert sched.total_unscheduled == 1
 
-    def test_empty_schedule_metrics(self):
+    def test_empty_schedule_metrics(self) -> None:
         sched = FullSchedule(start_date=date(2026, 6, 15), end_date=date(2026, 6, 16))
         assert sched.total_days == 0
         assert sched.total_scheduled == 0
@@ -262,23 +262,23 @@ class TestFullSchedule:
 
 
 class TestEnums:
-    def test_all_activity_types_have_colors(self):
+    def test_all_activity_types_have_colors(self) -> None:
         for at in ActivityType:
             assert at in ACTIVITY_COLOR_MAP, f"Missing color for {at.value}"
 
-    def test_all_block_types_have_colors(self):
+    def test_all_block_types_have_colors(self) -> None:
         """ACTIVITY gets its color from activity_type, so only non-ACTIVITY types need colors."""
         for bt in ScheduleBlockType:
             if bt == ScheduleBlockType.ACTIVITY:
                 continue
             assert bt in BLOCK_TYPE_COLOR_MAP, f"Missing color for {bt.value}"
 
-    def test_frequency_periods(self):
+    def test_frequency_periods(self) -> None:
         assert len(list(FrequencyPeriod)) == 3
 
-    def test_meal_relations(self):
+    def test_meal_relations(self) -> None:
         assert len(list(MealRelation)) == 4
 
-    def test_travel_adherence_levels(self):
+    def test_travel_adherence_levels(self) -> None:
         from models import TravelAdherence
         assert len(list(TravelAdherence)) == 3

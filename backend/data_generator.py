@@ -82,7 +82,8 @@ PYTHON_DOW_TO_ENUM: dict[int, DayOfWeek] = {
 def load_templates() -> dict[str, Any]:
     """Load activity and resource templates from templates.json."""
     with open(TEMPLATES_PATH, "r") as f:
-        return json.load(f)
+        data: dict[str, Any] = json.load(f)
+        return data
 
 
 # ═══════════════════════════════════════════════════════════
@@ -165,7 +166,7 @@ def _parse_time(time_str: str) -> time:
 def generate_activities(
     templates: dict[str, Any],
     resources: list[Resource],
-) -> list[Activity]:
+) -> tuple[list[Activity], set[str]]:
     """
     Generate Activity objects from templates.
 
