@@ -2,6 +2,8 @@
 
 A full-stack application that generates a personalized, conflict-free health schedule for a client over a **3-month window**. The system manages multiple resources, prioritizes an action plan of activities (fitness, therapy, medications, meals, consultations), handles constraints like sleep and work hours, and dynamically adapts to travel plans with different adherence levels.
 
+<img width="1707" height="897" alt="Screenshot 2026-06-10 at 1 29 14 PM" src="https://github.com/user-attachments/assets/57e023bc-e43a-4fea-b484-29fa117979bc" />
+
 ## Tech Stack
 
 - **Backend:** Python 3.10+, FastAPI, Pydantic, Custom Scheduling Engine
@@ -115,6 +117,11 @@ Every scheduling attempt checks:
 | `BREAK` | Only medications are scheduled; all other activities go to unscheduled |
 | `FLEXIBLE` | Remote-capable activities are allowed; non-remote activities are skipped |
 | `STRICT` | Full schedule maintained; travel destination treated as the activity location |
+
+Below are 2 travel scenarios with different travel adherence and the reduction in scheduled activities can be noted:
+<img width="1705" height="881" alt="Screenshot 2026-06-10 at 1 31 11 PM" src="https://github.com/user-attachments/assets/06337f15-832b-424f-a56b-6bb50e88efef" />
+<img width="1691" height="631" alt="Screenshot 2026-06-10 at 1 30 50 PM" src="https://github.com/user-attachments/assets/619baf80-8304-428f-bc94-4d33c3b608f3" />
+
 
 ## Features
 
