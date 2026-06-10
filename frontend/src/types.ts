@@ -30,6 +30,12 @@ export enum TravelAdherence {
   BREAK = "BREAK",
 }
 
+export enum FrequencyPeriod {
+  DAILY = "DAILY",
+  WEEKLY = "WEEKLY",
+  MONTHLY = "MONTHLY",
+}
+
 export enum DayOfWeek {
   MONDAY = "MONDAY",
   TUESDAY = "TUESDAY",
@@ -58,8 +64,6 @@ export interface ScheduleBlock {
   facilitator_name: string;
   location: string;
   is_remote: boolean;
-  is_backup: boolean;
-  original_activity_id: string | null;
   metrics_to_collect: string[];
   notes: string;
   color_code: string;
@@ -95,6 +99,7 @@ export interface FullSchedule {
   total_unscheduled: number;
   days: DaySchedule[];
   unscheduled: UnscheduledActivity[];
+  skip_summary: Record<string, number>;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -116,7 +121,6 @@ export interface CalendarEventResource {
   blockType: ScheduleBlockType;
   activityType: ActivityType | null;
   isRemote: boolean;
-  isBackup: boolean;
   facilitatorName: string;
   location: string;
   metricsToCollect: string[];
@@ -124,7 +128,6 @@ export interface CalendarEventResource {
   travelDestination?: string;
   travelAdherence?: TravelAdherence;
   activityId: string | null;
-  originalActivityId: string | null;
 }
 
 /* ═══════════════════════════════════════════════════════════

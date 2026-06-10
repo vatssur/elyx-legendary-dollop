@@ -1,10 +1,14 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { enUS } from 'date-fns/locale/en-US'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 import { useSchedule } from './hooks/useSchedule'
+import { useActionPlan } from './hooks/useActionPlan'
+import { ActionPlanPanel } from './components/ActionPlanPanel'
 import { ActivityBlock } from './components/ActivityBlock'
 import { ActivityDetail } from './components/ActivityDetail'
 import { UnscheduledPanel } from './components/UnscheduledPanel'
@@ -48,10 +52,14 @@ function getEventColor(resource: CalendarEventResource): string {
 
 export default function App() {
   const { events, unscheduled, schedule, loading, error, refetch } = useSchedule()
+  const { activities: actionPlan, loading: apLoading } = useActionPlan()
   const [currentView, setCurrentView] = useState<ViewType>('week')
   const [currentDate, setCurrentDate] = useState(() => new Date(2026, 5, 15))
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [showUnscheduled, setShowUnscheduled] = useState(false)
+  const [showActionPlan, setShowActionPlan] = useState(false)
+  const calendarRef = useRef<HTMLDivElement>(null)
+  const [exporting, setExporting] = useState(false)
 
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
     if (event.resource.blockType === ScheduleBlockType.TRAVEL_DAY) return
@@ -107,6 +115,56 @@ export default function App() {
 
   const totalScheduled = schedule?.total_scheduled ?? 0
   const totalUnscheduled = schedule?.total_unscheduled ?? 0
+
+  const handleExportPDF = useCallback(async () => {
+    if (!calendarRef.current || !schedule) return
+    setExporting(true)
+    try {
+      const el = calendarRef.current
+      const originalHeight = el.style.height
+      el.style.height = `${el.scrollHeight}px`
+      const canvas = await html2canvas(el, {
+        background: '#1a1a2e',
+        useCORS: true,
+        logging: false,
+      })
+      el.style.height = originalHeight
+      const imgData = canvas.toDataURL('image/png')
+
+      const pdf = new jsPDF('l', 'mm', 'a4')
+      const pageW = pdf.internal.pageSize.getWidth()
+      const pageH = pdf.internal.pageSize.getHeight()
+
+      pdf.setFillColor(26, 26, 46)
+      pdf.rect(0, 0, pageW, pageH, 'F')
+
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFontSize(16)
+      pdf.text('Health Schedule', pageW / 2, 14, { align: 'center' })
+
+      pdf.setFontSize(9)
+      const dateRange = `Week of ${format(currentDate, 'MMM d, yyyy')}`
+      pdf.text(dateRange, pageW / 2, 21, { align: 'center' })
+
+      pdf.setFontSize(8)
+      const statsLine = `Scheduled: ${totalScheduled}  |  Skipped: ${totalUnscheduled}`
+      pdf.text(statsLine, pageW / 2, 27, { align: 'center' })
+
+      const imgW = pageW - 16
+      const imgH = (canvas.height * imgW) / canvas.width
+      const maxImgH = pageH - 34
+      if (imgH > maxImgH) {
+        const scale = maxImgH / imgH
+        pdf.addImage(imgData, 'PNG', 8, 32, imgW * scale, imgH * scale)
+      } else {
+        pdf.addImage(imgData, 'PNG', 8, 32, imgW, imgH)
+      }
+
+      pdf.save('health-schedule.pdf')
+    } finally {
+      setExporting(false)
+    }
+  }, [schedule, currentDate, totalScheduled, totalUnscheduled])
 
   if (loading) {
     return (
@@ -198,12 +256,33 @@ export default function App() {
         <div className="header-right">
           <ViewToggle current={currentView} onChange={setCurrentView} />
           <button
+            className="sidebar-toggle export-btn"
+            onClick={handleExportPDF}
+            disabled={exporting}
+            title="Export PDF"
+            id="btn-export-pdf"
+          >
+            <span className="toggle-icon">{exporting ? '⏳' : '📄'}</span>
+            <span className="toggle-label">PDF</span>
+          </button>
+          {/* Action Plan toggle */}
+          <button
+            className={`sidebar-toggle ${showActionPlan ? 'active' : ''}`}
+            onClick={() => setShowActionPlan(v => !v)}
+            title="Action Plan"
+            id="toggle-action-plan"
+          >
+            <span className="toggle-icon">📋</span>
+            <span className="toggle-label">Plan</span>
+          </button>
+          {/* Skipped Activities toggle */}
+          <button
             className={`sidebar-toggle ${showUnscheduled ? 'active' : ''}`}
             onClick={() => setShowUnscheduled(v => !v)}
             title="Skipped Activities"
             id="toggle-unscheduled"
           >
-            <span className="toggle-icon">📋</span>
+            <span className="toggle-icon">⚠️</span>
             {totalUnscheduled > 0 && (
               <span className="toggle-badge">{totalUnscheduled}</span>
             )}
@@ -213,7 +292,7 @@ export default function App() {
 
       {/* ── Main Content ─────────────────────────────── */}
       <div className="app-body">
-        <main className="calendar-container" id="calendar-main">
+        <main className="calendar-container" id="calendar-main" ref={calendarRef}>
           <BigCalendar<CalendarEvent>
             localizer={localizer}
             events={events}
@@ -237,9 +316,18 @@ export default function App() {
           <Legend />
         </main>
 
+        {showActionPlan && (
+          <ActionPlanPanel
+            activities={actionPlan}
+            loading={apLoading}
+            onClose={() => setShowActionPlan(false)}
+          />
+        )}
+
         {showUnscheduled && (
           <UnscheduledPanel
             items={unscheduled}
+            skipSummary={schedule?.skip_summary}
             onClose={() => setShowUnscheduled(false)}
           />
         )}

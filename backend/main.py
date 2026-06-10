@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import random
 from datetime import date, time, timedelta
 from typing import Any
 
@@ -79,8 +80,8 @@ def _parse_date(d: str) -> date:
 
 
 def load_activities() -> list[Activity]:
-    """Load activities from action_plan.json."""
-    with open(os.path.join(DATA_DIR, "action_plan.json")) as f:
+    """Load all activities (including backups) from activities.json."""
+    with open(os.path.join(DATA_DIR, "activities.json")) as f:
         data = json.load(f)
 
     activities: list[Activity] = []
@@ -103,7 +104,9 @@ def load_activities() -> list[Activity]:
                 prep_description=item["prep_description"],
                 prep_duration_minutes=item["prep_duration_minutes"],
                 prep_buffer_minutes=item["prep_buffer_minutes"],
-                backup_activity_ids=item["backup_activity_ids"],
+                subtype=item["subtype"],
+                is_necessary=item["is_necessary"],
+                backup_activity_ids=item.get("backup_activity_ids", []),
                 skip_adjustment=item["skip_adjustment"],
                 metrics=item["metrics"],
                 meal_relation=MealRelation(item["meal_relation"]),
@@ -236,8 +239,6 @@ def _serialize_block(block: Any) -> dict[str, Any]:
         "facilitator_name": block.facilitator_name,
         "location": block.location,
         "is_remote": block.is_remote,
-        "is_backup": block.is_backup,
-        "original_activity_id": block.original_activity_id,
         "metrics_to_collect": block.metrics_to_collect,
         "notes": block.notes,
         "color_code": block.color_code,
@@ -285,10 +286,17 @@ def _get_schedule() -> dict[str, Any]:
 
     logger.info("Loading data and generating schedule...")
 
+    random.seed(42)
+
     activities = load_activities()
     resources = load_resources()
     availability = load_availability()
     client = load_client()
+
+    # Load action plan IDs
+    with open(os.path.join(DATA_DIR, "action_plan.json")) as f:
+        plan_data = json.load(f)
+    plan_ids = {a["id"] for a in plan_data["activities"]}
 
     start_date = date(2026, 6, 15)
     end_date = start_date + timedelta(days=90)
@@ -300,7 +308,13 @@ def _get_schedule() -> dict[str, Any]:
         client=client,
         start_date=start_date,
         end_date=end_date,
+        plan_ids=plan_ids,
     )
+
+    # Build skip summary grouped by reason
+    skip_summary: dict[str, int] = {}
+    for u in schedule.unscheduled:
+        skip_summary[u.reason] = skip_summary.get(u.reason, 0) + 1
 
     _cached_schedule = {
         "start_date": schedule.start_date.isoformat(),
@@ -310,6 +324,7 @@ def _get_schedule() -> dict[str, Any]:
         "total_unscheduled": schedule.total_unscheduled,
         "days": [_serialize_day(d) for d in schedule.days],
         "unscheduled": [_serialize_unscheduled(u) for u in schedule.unscheduled],
+        "skip_summary": dict(sorted(skip_summary.items(), key=lambda x: -x[1])),
     }
 
     logger.info(
@@ -348,21 +363,24 @@ def get_schedule() -> dict[str, Any]:
 def get_activities() -> dict[str, Any]:
     """Get all activities from the action plan."""
     with open(os.path.join(DATA_DIR, "action_plan.json")) as f:
-        return json.load(f)
+        data: dict[str, Any] = json.load(f)
+        return data
 
 
 @app.get("/api/resources")
 def get_resources() -> dict[str, Any]:
     """Get all resources."""
     with open(os.path.join(DATA_DIR, "resources.json")) as f:
-        return json.load(f)
+        data: dict[str, Any] = json.load(f)
+        return data
 
 
 @app.get("/api/client")
 def get_client() -> dict[str, Any]:
     """Get client profile with travel plans."""
     with open(os.path.join(DATA_DIR, "client.json")) as f:
-        return json.load(f)
+        data: dict[str, Any] = json.load(f)
+        return data
 
 
 @app.post("/api/schedule/regenerate")

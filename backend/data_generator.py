@@ -59,6 +59,9 @@ LOCATION_MAP: dict[str, str] = {
 SCHEDULE_START = date(2026, 6, 15)
 SCHEDULE_MONTHS = 3
 
+# Action plan curation cap
+ACTION_PLAN_SIZE = 26
+
 # Day of week mapping
 PYTHON_DOW_TO_ENUM: dict[int, DayOfWeek] = {
     0: DayOfWeek.MONDAY,
@@ -166,17 +169,15 @@ def generate_activities(
     """
     Generate Activity objects from templates.
 
-    The **action plan** (is_backup_only=False) contains ~25 curated activities:
+    The **action plan** contains 26 curated activities (the rest serve as
+    backup/alternative references):
+
       - 3 meal anchors
       - 8 medications
-      - 5 fitness activities
+      - 7 fitness activities
       - 4 therapy/wellness activities
       - 2 consultations
-      - 3 supplementary food/drink items
-
-    All remaining activities (fitness variations, extra supplements, etc.)
-    are created with is_backup_only=True so they remain available as
-    backup/alternative references without being independently scheduled.
+      - 2 supplementary food/drink items
 
     Args:
         templates: The loaded templates.json data.
@@ -186,6 +187,7 @@ def generate_activities(
         List of Activity objects sorted by priority.
     """
     activities: list[Activity] = []
+    plan_ids: set[str] = set()
     activity_templates = templates["activity_templates"]
     priority_counter = 1
     activity_counter = 1
@@ -198,10 +200,12 @@ def generate_activities(
     for tmpl in meal_anchors:
         act_id = f"act_{activity_counter:03d}"
         fid, ftype = _find_facilitator(resources, tmpl["facilitator_type"], tmpl["name_template"])
-        activities.append(_build_activity(
+        act = _build_activity(
             act_id, tmpl["name_template"], ActivityType.FOOD_CONSUMPTION,
             priority_counter, tmpl, fid, ftype,
-        ))
+        )
+        activities.append(act)
+        plan_ids.add(act_id)
         activity_counter += 1
         priority_counter += 1
 
@@ -218,6 +222,7 @@ def generate_activities(
         act.meal_relation_type = MealType(tmpl.get("meal_relation_type", "ANY"))
         act.meal_relation_offset_minutes = tmpl.get("meal_relation_offset_minutes", 0)
         activities.append(act)
+        plan_ids.add(act_id)
         activity_counter += 1
         priority_counter += 1
 
@@ -225,8 +230,9 @@ def generate_activities(
     fitness_templates = activity_templates.get("FITNESS", [])
     ACTION_PLAN_FITNESS = {
         "Zone 2 Run", "Strength Training - Upper Body",
-        "Strength Training - Lower Body", "Morning Stretching",
+        "Strength Training - Lower Body",
         "Yoga - Flexibility",
+        "HIIT Session", "Swimming Laps", "Core Stability Workout",
     }
     FITNESS_FREQ: dict[str, tuple[int, FrequencyPeriod]] = {
         "Zone 2 Run": (3, FrequencyPeriod.WEEKLY),
@@ -249,8 +255,9 @@ def generate_activities(
         act = _build_activity(act_id, name, ActivityType.FITNESS, priority_counter, tmpl, fid, ftype)
         act.frequency_times = freq
         act.frequency_period = period
-        act.is_backup_only = name not in ACTION_PLAN_FITNESS
         activities.append(act)
+        if name in ACTION_PLAN_FITNESS:
+            plan_ids.add(act_id)
         activity_counter += 1
         priority_counter += 1
 
@@ -275,8 +282,9 @@ def generate_activities(
         act = _build_activity(act_id, name, ActivityType.THERAPY, priority_counter, tmpl, fid, ftype)
         act.frequency_times = freq
         act.frequency_period = period
-        act.is_backup_only = name not in ACTION_PLAN_THERAPY
         activities.append(act)
+        if name in ACTION_PLAN_THERAPY:
+            plan_ids.add(act_id)
         activity_counter += 1
         priority_counter += 1
 
@@ -300,13 +308,14 @@ def generate_activities(
         act = _build_activity(act_id, name, ActivityType.CONSULTATION, priority_counter, tmpl, fid, ftype)
         act.frequency_times = freq
         act.frequency_period = period
-        act.is_backup_only = name not in ACTION_PLAN_CONSULT
         activities.append(act)
+        if name in ACTION_PLAN_CONSULT:
+            plan_ids.add(act_id)
         activity_counter += 1
         priority_counter += 1
 
     # ── Phase 6: Supplementary food (3 in action plan) ────────────
-    ACTION_PLAN_FOOD = {"Hydration Check", "Afternoon Protein Shake", "Mid-Morning Snack"}
+    ACTION_PLAN_FOOD = {"Hydration Check", "Afternoon Protein Shake"}
     for tmpl in non_meal_food:
         act_id = f"act_{activity_counter:03d}"
         name = tmpl["name_template"]
@@ -316,16 +325,17 @@ def generate_activities(
         act = _build_activity(act_id, name, ActivityType.FOOD_CONSUMPTION, priority_counter, tmpl, fid, ftype)
         act.frequency_times = freq_times
         act.frequency_period = freq_period
-        act.is_backup_only = name not in ACTION_PLAN_FOOD
         activities.append(act)
+        if name in ACTION_PLAN_FOOD:
+            plan_ids.add(act_id)
         activity_counter += 1
         priority_counter += 1
 
     # ── Phase 7: Fitness variations (backup-only) ─────────────────
-    variation_suffixes = [("- Beginner", 0.7), ("- Advanced", 1.3), ("- Quick", 0.5)]
-    base_fitness = [a for a in activities if a.activity_type == ActivityType.FITNESS and not a.is_backup_only]
+    variation_suffixes = [("- Beginner", 0.7), ("- Advanced", 1.3), ("- Quick", 0.5), ("- Express", 0.3)]
+    all_fitness = [a for a in activities if a.activity_type == ActivityType.FITNESS]
 
-    for act in base_fitness:
+    for act in all_fitness:
         for suffix, dur_mult in variation_suffixes:
             act_id = f"act_{activity_counter:03d}"
             activities.append(Activity(
@@ -353,20 +363,33 @@ def generate_activities(
                 transit_minutes_from_home=act.transit_minutes_from_home,
                 min_gap_after_minutes=act.min_gap_after_minutes,
                 energy_cost=max(1, min(5, act.energy_cost + (1 if "Advanced" in suffix else -1))),
-                is_backup_only=True,
+                subtype=act.subtype,
             ))
             activity_counter += 1
             priority_counter += 1
 
     # ── Phase 8: Extra backup-only activities ─────────────────────
-    _extras = [
-        ("Resistance Band Workout", ActivityType.FITNESS, 25, "home", True, 2, "06:00", "20:00"),
-        ("Foam Rolling Recovery", ActivityType.FITNESS, 15, "home", True, 1, "06:00", "21:00"),
-        ("Mobility Flow", ActivityType.FITNESS, 20, "home", True, 1, "06:00", "21:00"),
-        ("Epsom Salt Bath", ActivityType.THERAPY, 25, "home", False, 1, "19:00", "21:30"),
-        ("Gratitude Journaling", ActivityType.THERAPY, 10, "home", True, 1, "06:00", "22:00"),
+    _extras: list[tuple[str, ActivityType, int, str, bool, int, str, str, str]] = [
+        ("Resistance Band Workout", ActivityType.FITNESS, 25, "home", True, 2, "06:00", "20:00", "strength"),
+        ("Foam Rolling Recovery", ActivityType.FITNESS, 15, "home", True, 1, "06:00", "21:00", "massage"),
+        ("Mobility Flow", ActivityType.FITNESS, 20, "home", True, 1, "06:00", "21:00", "flexibility"),
+        ("Epsom Salt Bath", ActivityType.THERAPY, 25, "home", False, 1, "19:00", "21:30", "thermal_recovery"),
+        ("Gratitude Journaling", ActivityType.THERAPY, 10, "home", True, 1, "06:00", "22:00", "mindfulness"),
+        ("TENS Therapy Session", ActivityType.THERAPY, 15, "home", True, 1, "06:00", "22:00", "electrotherapy"),
+        ("Contrast Shower Protocol", ActivityType.THERAPY, 12, "home", True, 1, "06:00", "22:00", "thermal_recovery"),
+        ("Cold Exposure Breathing", ActivityType.THERAPY, 8, "home", True, 1, "06:00", "22:00", "breathwork"),
+        ("Journaling - Evening Reflection", ActivityType.THERAPY, 10, "home", True, 1, "20:00", "22:30", "mindfulness"),
+        ("Progressive Muscle Relaxation", ActivityType.THERAPY, 15, "home", True, 1, "19:00", "22:00", "relaxation"),
+        ("Body Scan Meditation", ActivityType.THERAPY, 12, "home", True, 1, "07:00", "22:00", "mindfulness"),
+        ("Daily Step Count Check", ActivityType.FITNESS, 5, "home", True, 1, "12:00", "22:00", "monitoring"),
+        ("Hydration Tracking", ActivityType.FOOD_CONSUMPTION, 2, "home", True, 1, "06:00", "22:00", "monitoring"),
+        ("Supplement Refill Check", ActivityType.MEDICATION, 3, "home", True, 1, "09:00", "21:00", "preparation"),
+        ("Nerve Flossing Routine", ActivityType.FITNESS, 8, "home", True, 1, "06:00", "21:00", "recovery"),
+        ("Walk & Talk Call Prep", ActivityType.CONSULTATION, 10, "home", True, 1, "07:00", "20:00", "preparation"),
+        ("Sleep Hygiene Review", ActivityType.THERAPY, 5, "home", True, 1, "20:30", "22:30", "monitoring"),
+        ("Pain Scale Logging", ActivityType.THERAPY, 2, "home", True, 1, "06:00", "22:00", "monitoring"),
     ]
-    for name, atype, dur, loc, remote, energy, earliest, latest in _extras:
+    for name, atype, dur, loc, remote, energy, earliest, latest, subtype in _extras:
         act_id = f"act_{activity_counter:03d}"
         activities.append(Activity(
             id=act_id, name=name, activity_type=atype,
@@ -379,23 +402,24 @@ def generate_activities(
             metrics=["session_completed"],
             earliest_start=_parse_time(earliest), latest_start=_parse_time(latest),
             transit_minutes_from_home=0, min_gap_after_minutes=5,
-            energy_cost=energy, is_backup_only=True,
+            energy_cost=energy,
+            subtype=subtype,
         ))
         activity_counter += 1
         priority_counter += 1
 
     # ── Cross-reference backups ───────────────────────────────────
-    _set_backups(activities, "Zone 2 Run", ["Cycling - Outdoor", "Resistance Band Workout"])
+    _set_backups(activities, "Zone 2 Run", ["HIIT Session"])
     _set_backups(activities, "Strength Training - Upper Body", ["Resistance Band Workout"])
-    _set_backups(activities, "Strength Training - Lower Body", ["Yoga - Flexibility"])
+    _set_backups(activities, "Strength Training - Lower Body", ["Resistance Band Workout"])
     _set_backups(activities, "Yoga - Flexibility", ["Mobility Flow", "Morning Stretching"])
     _set_backups(activities, "Morning Stretching", ["Mobility Flow"])
-    _set_backups(activities, "Sauna Session", ["Red Light Therapy", "Epsom Salt Bath"])
-    _set_backups(activities, "Sports Massage", ["Foam Rolling Recovery", "Mobility Flow"])
+    _set_backups(activities, "Sauna Session", ["Epsom Salt Bath"])
+    _set_backups(activities, "Sports Massage", ["Foam Rolling Recovery"])
     _set_backups(activities, "Guided Meditation", ["Gratitude Journaling"])
 
     activities.sort(key=lambda a: a.priority)
-    return activities
+    return activities, plan_ids
 
 
 def _build_activity(
@@ -425,6 +449,8 @@ def _build_activity(
         prep_description=tmpl.get("prep_description", ""),
         prep_duration_minutes=tmpl.get("prep_duration_minutes", 0),
         prep_buffer_minutes=tmpl.get("prep_buffer_minutes", 0),
+        subtype=tmpl.get("subtype", ""),
+        is_necessary=tmpl.get("is_necessary", False),
         skip_adjustment=tmpl.get("skip_adjustment", ""),
         metrics=tmpl.get("metrics", []),
         earliest_start=_parse_time(tmpl["earliest_start"]) if "earliest_start" in tmpl else None,
@@ -681,6 +707,8 @@ def _serialize_activity(act: Activity) -> dict[str, Any]:
         "prep_duration_minutes": act.prep_duration_minutes,
         "prep_buffer_minutes": act.prep_buffer_minutes,
         "backup_activity_ids": act.backup_activity_ids,
+        "subtype": act.subtype,
+        "is_necessary": act.is_necessary,
         "skip_adjustment": act.skip_adjustment,
         "metrics": act.metrics,
         "meal_relation": act.meal_relation.value,
@@ -791,8 +819,8 @@ def generate_all_data() -> None:
     print(f"  → {len(resources)} resources generated")
 
     print("Generating activities...")
-    activities = generate_activities(templates, resources)
-    print(f"  → {len(activities)} activities generated")
+    activities, plan_ids = generate_activities(templates, resources)
+    print(f"  → {len(activities)} activities generated ({len(plan_ids)} in action plan)")
 
     print("Generating resource availability (3 months)...")
     availability = generate_resource_availability(resources, SCHEDULE_START)
@@ -803,10 +831,19 @@ def generate_all_data() -> None:
     print(f"  → Client with {len(client.travel_plans)} travel plans")
 
     # Write files
+    activities_path = os.path.join(OUTPUT_DIR, "activities.json")
+    with open(activities_path, "w") as f:
+        json.dump(
+            {"activities": [_serialize_activity(a) for a in activities]},
+            f,
+            indent=2,
+        )
+    print(f"  ✓ {activities_path}")
+
     action_plan_path = os.path.join(OUTPUT_DIR, "action_plan.json")
     with open(action_plan_path, "w") as f:
         json.dump(
-            {"activities": [_serialize_activity(a) for a in activities]},
+            {"activities": [_serialize_activity(a) for a in activities if a.id in plan_ids]},
             f,
             indent=2,
         )

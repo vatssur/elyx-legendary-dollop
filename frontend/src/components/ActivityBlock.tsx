@@ -31,7 +31,6 @@ export function ActivityBlock({ event }: EventProps<CalendarEvent>) {
       <span className="event-emoji">{emoji}</span>
       <span className="event-title">{event.title}</span>
       {resource.isRemote && <span className="event-badge remote" title="Remote">📹</span>}
-      {resource.isBackup && <span className="event-badge backup" title="Backup">🔄</span>}
     </div>
   )
 }

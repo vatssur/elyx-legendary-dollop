@@ -5,6 +5,7 @@ import './UnscheduledPanel.css'
 
 interface UnscheduledPanelProps {
   items: UnscheduledActivity[]
+  skipSummary?: Record<string, number>
   onClose: () => void
 }
 
@@ -13,7 +14,7 @@ interface GroupedItem {
   items: UnscheduledActivity[]
 }
 
-export function UnscheduledPanel({ items, onClose }: UnscheduledPanelProps) {
+export function UnscheduledPanel({ items, skipSummary, onClose }: UnscheduledPanelProps) {
   const [filterType, setFilterType] = useState<ActivityType | 'ALL'>('ALL')
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set())
 
@@ -70,6 +71,19 @@ export function UnscheduledPanel({ items, onClose }: UnscheduledPanelProps) {
           ×
         </button>
       </div>
+
+      {/* Skip Summary */}
+      {skipSummary && Object.keys(skipSummary).length > 0 && (
+        <div className="skip-summary">
+          <div className="skip-summary-header">Skip Reasons</div>
+          {Object.entries(skipSummary).map(([reason, count]) => (
+            <div key={reason} className="skip-summary-row">
+              <span className="skip-summary-reason">{reason}</span>
+              <span className="skip-summary-count">{count}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Filter chips */}
       <div className="panel-filters">

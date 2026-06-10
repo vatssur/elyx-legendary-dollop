@@ -57,13 +57,11 @@ function blockToEvent(
     blockType: block.block_type,
     activityType: block.activity_type,
     isRemote: block.is_remote,
-    isBackup: block.is_backup,
     facilitatorName: block.facilitator_name,
     location: block.location,
     metricsToCollect: block.metrics_to_collect,
     notes: block.notes,
     activityId: block.activity_id,
-    originalActivityId: block.original_activity_id,
   };
 
   if (isTravelDay) {
@@ -138,7 +136,6 @@ export function useSchedule(): UseScheduleReturn {
               blockType: ScheduleBlockType.TRAVEL_DAY,
               activityType: null,
               isRemote: false,
-              isBackup: false,
               facilitatorName: "",
               location: day.travel_destination ?? "",
               metricsToCollect: [],
@@ -146,7 +143,6 @@ export function useSchedule(): UseScheduleReturn {
               travelDestination: day.travel_destination ?? undefined,
               travelAdherence: day.travel_adherence ?? undefined,
               activityId: null,
-              originalActivityId: null,
             },
           });
         }

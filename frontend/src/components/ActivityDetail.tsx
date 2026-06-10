@@ -59,9 +59,6 @@ export function ActivityDetail({ event, onClose }: ActivityDetailProps) {
               {resource.isRemote && (
                 <span className="detail-badge remote">📹 Remote</span>
               )}
-              {resource.isBackup && (
-                <span className="detail-badge backup">🔄 Backup</span>
-              )}
             </div>
           </div>
         </div>

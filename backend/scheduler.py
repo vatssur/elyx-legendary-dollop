@@ -8,7 +8,8 @@ Algorithm Phases:
   1. Anchor meals at their configured time windows
   2. Anchor medications relative to their linked meals
   3. Schedule all remaining activities by priority
-  4. Validate and report unscheduled activities
+  4. Week-based fallback — try unscheduled on other weekdays, then backups
+  5. Cross-day fallback over the full 3-month window
 
 Key features:
   - Back-to-back same-location optimization
@@ -20,11 +21,18 @@ Key features:
 from __future__ import annotations
 
 import logging
+import random
 from dataclasses import dataclass
 from datetime import date, time, timedelta
 from typing import Optional
 
 from models import (
+    LOCATION_ANYWHERE,
+    LOCATION_HOME,
+    LOCATION_GYM,
+    SUBTYPE_BREAKFAST,
+    SUBTYPE_LUNCH,
+    SUBTYPE_DINNER,
     Activity,
     ActivityType,
     ClientAvailability,
@@ -37,6 +45,7 @@ from models import (
     MealType,
     Resource,
     ResourceAvailability,
+    ResourceType,
     ScheduleBlock,
     ScheduleBlockType,
     TimeSlot,
@@ -59,9 +68,19 @@ DAY_END_HOUR = 24
 # Activities with priority <= this value are considered "high priority"
 FLEXIBLE_PRIORITY_THRESHOLD = 20
 
-# For same-location optimization: max gap (minutes) between activities
-# at the same location to attempt consolidation
-SAME_LOCATION_MAX_GAP_MINUTES = 180
+# Maximum number of activities with the same subtype allowed per day.
+# 2 means two strength activities can share a day (harder constraint = 1).
+MAX_SAME_SUBTYPE_PER_DAY = 2
+
+# Activity types that should NOT be scheduled during the client's work hours
+# when they are at a non-home location (home-based activities like stretching,
+# eye exercises, meditation are OK since they don't need transit).
+# Meals and medications are always exempt.
+WORK_HOURS_BLOCKED_TYPES = frozenset({
+    ActivityType.FITNESS,
+    ActivityType.THERAPY,
+    ActivityType.CONSULTATION,
+})
 
 # Map Python weekday (0=Monday) to our DayOfWeek enum
 PYTHON_DOW_TO_ENUM: dict[int, DayOfWeek] = {
@@ -255,6 +274,10 @@ def _overlaps_existing(
     """
     Check if a time slot overlaps with any existing block in the day.
 
+    Blocks with location "anywhere" (e.g., medications) are skipped because
+    they don't occupy physical space — a pill can be taken concurrently with
+    activities at other locations.
+
     Args:
         day_schedule: The day's current schedule.
         start_time: Proposed start time.
@@ -268,7 +291,9 @@ def _overlaps_existing(
 
     for block in day_schedule.blocks:
         if block.block_type == ScheduleBlockType.TRAVEL_DAY:
-            continue  # Travel markers don't occupy time
+            continue
+        if block.location == LOCATION_ANYWHERE:
+            continue  # Medications don't occupy physical space
 
         blk_start = _time_to_minutes(block.start_time)
         blk_end = _time_to_minutes(block.end_time)
@@ -372,12 +397,13 @@ def _find_slot(
     target_date: date,
     ctx: SchedulerContext,
     is_remote: bool = False,
+    scan_reverse: bool = False,
 ) -> Optional[int]:
     """
-    Find the first available slot for an activity on a given day.
+    Find an available slot for an activity on a given day.
 
     Scans from earliest_start to latest_start in SLOT_GRANULARITY
-    increments, checking all constraints.
+    increments (or reverse if scan_reverse=True), checking all constraints.
 
     Args:
         activity: The activity to schedule.
@@ -385,6 +411,7 @@ def _find_slot(
         target_date: The target date.
         ctx: Scheduler context.
         is_remote: Whether this is being scheduled as a remote activity.
+        scan_reverse: If True, scan from latest_start backwards.
 
     Returns:
         Start time in minutes since midnight, or None.
@@ -393,22 +420,37 @@ def _find_slot(
     earliest = _time_to_minutes(activity.earliest_start) if activity.earliest_start else _time_to_minutes(ctx.client.sleep_end)
     latest = _time_to_minutes(activity.latest_start) if activity.latest_start else (_time_to_minutes(ctx.client.sleep_start) - activity.duration_minutes)
 
+    # On weekdays, push the scan start after work for non-home FITNESS/THERAPY/CONSULTATION
+    # so these activities land in the after-work window rather than early morning.
+    if (
+        activity.activity_type in WORK_HOURS_BLOCKED_TYPES
+        and activity.location_name != LOCATION_HOME
+        and ctx.client.work_start is not None
+        and ctx.client.work_end is not None
+    ):
+        dow = _get_day_of_week(target_date)
+        if dow in ctx.client.work_days:
+            work_e = _time_to_minutes(ctx.client.work_end)
+            if earliest < work_e:
+                earliest = work_e
+
     # Include transit time in total duration
     location = activity.location_name
     total_duration = activity.duration_minutes
 
-    for scan_start in range(earliest, latest + 1, SLOT_GRANULARITY_MINUTES):
+    scan_range = range(latest, earliest - 1, -SLOT_GRANULARITY_MINUTES) if scan_reverse else range(earliest, latest + 1, SLOT_GRANULARITY_MINUTES)
+    for scan_start in scan_range:
         candidate_start = _minutes_to_time(scan_start)
 
         # Calculate transit needs
         transit_needed = 0
-        if not is_remote and location != "home" and activity.transit_minutes_from_home > 0:
+        if not is_remote and location != LOCATION_HOME and activity.transit_minutes_from_home > 0:
             prev_location = _get_last_location_before(
-                day_schedule, candidate_start, "home"
+                day_schedule, candidate_start, LOCATION_HOME
             )
             if prev_location != location:
                 transit_needed = activity.transit_minutes_from_home
-                if prev_location != "home":
+                if prev_location != LOCATION_HOME:
                     # Between two non-home locations: heuristic
                     transit_needed = int(activity.transit_minutes_from_home * 0.7)
 
@@ -427,6 +469,25 @@ def _find_slot(
         if _is_in_sleep_block(ctx.client, candidate_start, activity_end_time):
             continue
 
+        # ── Work-hours enforcement ────────────────────────────────
+        # Physical activities (FITNESS, THERAPY, CONSULTATION) at
+        # non-home locations must not be placed during work hours.
+        # Home-based activities (eye exercises, stretching, meditation)
+        # are short and don't need transit — they're OK during work.
+        if (
+            activity.activity_type in WORK_HOURS_BLOCKED_TYPES
+            and activity.location_name != LOCATION_HOME
+            and ctx.client.work_start is not None
+            and ctx.client.work_end is not None
+        ):
+            dow = _get_day_of_week(target_date)
+            if dow in ctx.client.work_days:
+                work_s = _time_to_minutes(ctx.client.work_start)
+                work_e = _time_to_minutes(ctx.client.work_end)
+                # Reject if any part of the activity overlaps the work window
+                if not (activity_end <= work_s or activity_start >= work_e):
+                    continue
+
         # Check overlap with existing blocks (including transit portion)
         if transit_needed > 0:
             transit_start_time = _minutes_to_time(actual_start)
@@ -442,7 +503,7 @@ def _find_slot(
             continue
 
         # Check resource availability (skip for remote activities using remote-capable facilitator)
-        if activity.facilitator_id and activity.facilitator_type.value != "SELF":
+        if activity.facilitator_id and activity.facilitator_type != ResourceType.SELF:
             if not _is_resource_available(
                 activity.facilitator_id,
                 target_date,
@@ -473,8 +534,6 @@ def _place_activity(
     slot_start_minutes: int,
     ctx: SchedulerContext,
     is_remote: bool = False,
-    is_backup: bool = False,
-    original_activity_id: Optional[str] = None,
 ) -> bool:
     """
     Place an activity (with transit and prep blocks) into a day's schedule.
@@ -485,8 +544,6 @@ def _place_activity(
         slot_start_minutes: The start time in minutes since midnight.
         ctx: Scheduler context.
         is_remote: Whether scheduled as remote.
-        is_backup: Whether this is a backup activity.
-        original_activity_id: If backup, what it replaces.
 
     Returns:
         True if successfully placed.
@@ -500,13 +557,13 @@ def _place_activity(
 
     # Calculate transit
     transit_needed = 0
-    if not is_remote and location != "home" and activity.transit_minutes_from_home > 0:
+    if not is_remote and location != LOCATION_HOME and activity.transit_minutes_from_home > 0:
         prev_location = _get_last_location_before(
-            day_schedule, _minutes_to_time(slot_start_minutes), "home"
+            day_schedule, _minutes_to_time(slot_start_minutes), LOCATION_HOME
         )
         if prev_location != location:
             transit_needed = activity.transit_minutes_from_home
-            if prev_location != "home":
+            if prev_location != LOCATION_HOME:
                 transit_needed = int(activity.transit_minutes_from_home * 0.7)
 
     # Insert transit block
@@ -544,8 +601,6 @@ def _place_activity(
             facilitator_name=facilitator_name,
             location=location,
             is_remote=is_remote,
-            is_backup=is_backup,
-            original_activity_id=original_activity_id,
             metrics_to_collect=activity.metrics,
             notes=activity.details,
         )
@@ -662,12 +717,12 @@ def _schedule_meals(
             # Still schedule meals because medications may depend on them
             pass
 
-        slot_minutes = _find_slot(activity, day_schedule, target_date, ctx)
+        slot_minutes = _find_slot(activity, day_schedule, target_date, ctx, scan_reverse=True)
         if slot_minutes is not None:
             _place_activity(activity, day_schedule, slot_minutes, ctx)
             # Record the meal's actual scheduled time (activity start, after transit)
             transit = 0
-            if activity.location_name != "home" and activity.transit_minutes_from_home > 0:
+            if activity.location_name != LOCATION_HOME and activity.transit_minutes_from_home > 0:
                 transit = activity.transit_minutes_from_home
             meal_times[meal_type] = slot_minutes + transit
         else:
@@ -680,7 +735,10 @@ def _schedule_meals(
 
 def _infer_meal_type(activity: Activity) -> MealType:
     """
-    Infer the MealType from an activity's name.
+    Infer the MealType from an activity's subtype.
+
+    Uses the activity's subtype field instead of name matching
+    to determine meal type, per scheduler philosophy (no name knowledge).
 
     Args:
         activity: A food consumption activity.
@@ -688,12 +746,12 @@ def _infer_meal_type(activity: Activity) -> MealType:
     Returns:
         The inferred MealType.
     """
-    name_lower = activity.name.lower()
-    if "breakfast" in name_lower:
+    subtype = activity.subtype.lower()
+    if subtype == SUBTYPE_BREAKFAST:
         return MealType.BREAKFAST
-    elif "lunch" in name_lower:
+    elif subtype == SUBTYPE_LUNCH:
         return MealType.LUNCH
-    elif "dinner" in name_lower:
+    elif subtype == SUBTYPE_DINNER:
         return MealType.DINNER
     return MealType.ANY
 
@@ -769,7 +827,9 @@ def _schedule_medications(
             # Assume meal is ~30 min, so "after meal" = meal_start + 30 + offset
             med_time = linked_meal_time + 30 + offset
         else:  # WITH_MEAL
-            med_time = linked_meal_time
+            # Place at meal start — intentionally overlaps with the meal block
+            _place_activity(activity, day_schedule, linked_meal_time, ctx)
+            continue
 
         med_time = max(0, min(1430, med_time))  # Clamp to valid range
 
@@ -851,9 +911,9 @@ def _should_schedule_on_travel_day(
         return True, True
 
     # Check if the activity can be done at the destination
-    if activity.location_name == "gym" and travel_plan.has_gym_access:
+    if activity.location_name == LOCATION_GYM and travel_plan.has_gym_access:
         return True, False
-    if activity.location_name == "home" and travel_plan.has_kitchen_access:
+    if activity.location_name == LOCATION_HOME and travel_plan.has_kitchen_access:
         return True, False
 
     # Not remote-capable and location not available — will try backups
@@ -865,41 +925,28 @@ def _try_schedule_activity(
     day_schedule: DaySchedule,
     target_date: date,
     ctx: SchedulerContext,
-    travel_plan: Optional[TravelPlan],
+    travel_plan: Optional[TravelPlan] = None,
 ) -> bool:
     """
-    Try to schedule an activity, trying backups if necessary.
-
-    During travel, attempts remote-capable backups for non-remote activities.
-
-    Args:
-        activity: The activity to schedule.
-        day_schedule: The day to schedule into.
-        target_date: Target date.
-        ctx: Scheduler context.
-        travel_plan: Active travel plan, if any.
-
-    Returns:
-        True if the activity (or a backup) was scheduled.
+    Try to schedule an activity.
     """
+    # --- SUBTYPE CHECK ---
+    # Allow up to MAX_SAME_SUBTYPE_PER_DAY activities of the same subtype per day.
+    same_subtype_count = 0
+    for block in day_schedule.blocks:
+        if block.block_type == ScheduleBlockType.ACTIVITY and block.activity_id:
+            scheduled_act = ctx.activity_map.get(block.activity_id)
+            if scheduled_act and scheduled_act.subtype == activity.subtype:
+                same_subtype_count += 1
+    if same_subtype_count >= MAX_SAME_SUBTYPE_PER_DAY:
+        return False
+
     if travel_plan:
         should_schedule, force_remote = _should_schedule_on_travel_day(
             activity, travel_plan, ctx
         )
 
         if not should_schedule:
-            # Try backup activities that are remote-capable
-            for backup_id in activity.backup_activity_ids:
-                backup = ctx.activity_map.get(backup_id)
-                if backup and backup.remote_capable:
-                    slot_minutes = _find_slot(backup, day_schedule, target_date, ctx, is_remote=True)
-                    if slot_minutes is not None:
-                        _place_activity(
-                            backup, day_schedule, slot_minutes, ctx,
-                            is_remote=True, is_backup=True,
-                            original_activity_id=activity.id,
-                        )
-                        return True
             return False
 
         if force_remote:
@@ -917,19 +964,24 @@ def _try_schedule_activity(
         _place_activity(activity, day_schedule, slot_minutes, ctx)
         return True
 
-    # Try backups
+    # Backup fallback: try each backup activity in order
     for backup_id in activity.backup_activity_ids:
-        backup = ctx.activity_map.get(backup_id)
-        if backup:
-            is_remote = travel_plan is not None and backup.remote_capable
-            slot_minutes = _find_slot(backup, day_schedule, target_date, ctx, is_remote=is_remote)
-            if slot_minutes is not None:
-                _place_activity(
-                    backup, day_schedule, slot_minutes, ctx,
-                    is_remote=is_remote, is_backup=True,
-                    original_activity_id=activity.id,
-                )
-                return True
+        backup_act = ctx.activity_map.get(backup_id)
+        if backup_act is None:
+            continue
+        # Apply same subtype limit check to backup
+        backup_subtype_count = 0
+        for block in day_schedule.blocks:
+            if block.block_type == ScheduleBlockType.ACTIVITY and block.activity_id:
+                scheduled_act = ctx.activity_map.get(block.activity_id)
+                if scheduled_act and scheduled_act.subtype == backup_act.subtype:
+                    backup_subtype_count += 1
+        if backup_subtype_count >= MAX_SAME_SUBTYPE_PER_DAY:
+            continue
+        backup_slot = _find_slot(backup_act, day_schedule, target_date, ctx)
+        if backup_slot is not None:
+            _place_activity(backup_act, day_schedule, backup_slot, ctx)
+            return True
 
     return False
 
@@ -939,93 +991,114 @@ def _try_schedule_activity(
 # ═══════════════════════════════════════════════════════════
 
 
-def _optimize_same_location(day_schedule: DaySchedule) -> None:
+def _try_week_fallback(
+    unscheduled: list[UnscheduledActivity],
+    schedule: FullSchedule,
+    ctx: SchedulerContext,
+    week_start: date,
+) -> None:
     """
-    Optimize the schedule by consolidating activities at the same location.
+    Phase 4: Week-based fallback for unscheduled activities.
 
-    If two activities are at the same non-home location and have a gap
-    between them, try to move the later one closer to eliminate redundant
-    transit blocks.
-
-    This is a post-processing step after all activities are placed.
-
-    Args:
-        day_schedule: The day's schedule to optimize.
+    For each activity that couldn't fit on its target day, try:
+      1. Schedule the activity on another day within the same 7-day window
+      2. If that fails, schedule a backup activity on another day in the window
     """
-    activity_blocks = [
-        b for b in day_schedule.blocks
-        if b.block_type == ScheduleBlockType.ACTIVITY and b.location not in ("home", "remote")
-    ]
+    start_of_week = week_start
+    end_of_week = start_of_week + timedelta(days=6)
 
-    if len(activity_blocks) < 2:
-        return
+    scheduled_subtypes: dict[int, set[str]] = {}
+    day_index: dict[date, DaySchedule] = {}
+    for day_sch in schedule.days:
+        day_index[day_sch.date] = day_sch
+        if start_of_week <= day_sch.date <= end_of_week:
+            offset = (day_sch.date - start_of_week).days
+            subtypes: set[str] = set()
+            for block in day_sch.blocks:
+                if block.block_type == ScheduleBlockType.ACTIVITY and block.activity_id:
+                    act = ctx.activity_map.get(block.activity_id)
+                    if act and act.subtype:
+                        subtypes.add(act.subtype)
+            scheduled_subtypes[offset] = subtypes
 
-    # Group by location
-    location_groups: dict[str, list[ScheduleBlock]] = {}
-    for block in activity_blocks:
-        location_groups.setdefault(block.location, []).append(block)
-
-    for location, blocks in location_groups.items():
-        if len(blocks) < 2:
+    remaining: list[UnscheduledActivity] = []
+    for entry in unscheduled:
+        if entry.target_date < start_of_week or entry.target_date > end_of_week:
+            remaining.append(entry)
             continue
 
-        # Sort by start time
-        blocks.sort(key=lambda b: _time_to_minutes(b.start_time))
+        activity = ctx.activity_map.get(entry.activity_id)
+        if activity is None:
+            remaining.append(entry)
+            continue
 
-        # Try to move later blocks closer to earlier ones
-        for i in range(1, len(blocks)):
-            prev_block = blocks[i - 1]
-            curr_block = blocks[i]
+        if activity.activity_type in (ActivityType.FOOD_CONSUMPTION, ActivityType.MEDICATION):
+            remaining.append(entry)
+            continue
 
-            prev_end = _time_to_minutes(prev_block.end_time)
-            curr_start = _time_to_minutes(curr_block.start_time)
-            gap = curr_start - prev_end
+        placed = False
+        target_offset = (entry.target_date - start_of_week).days
 
-            if gap > SLOT_GRANULARITY_MINUTES and gap <= SAME_LOCATION_MAX_GAP_MINUTES:
-                # Check if we can move current block earlier
-                # Ensure min_gap is respected
-                activity = None
-                for a_block in day_schedule.blocks:
-                    if a_block.block_id == curr_block.block_id:
-                        # Find the original activity for gap checking
-                        break
+        # Try the activity itself on other days in the week
+        for day_offset in range(7):
+            if day_offset == target_offset:
+                continue
+            day = start_of_week + timedelta(days=day_offset)
+            day_sch = day_index.get(day)
+            if day_sch is None or day_sch.travel_adherence == TravelAdherence.BREAK:
+                continue
 
-                new_start = prev_end + SLOT_GRANULARITY_MINUTES
-                new_end = new_start + (curr_start - _time_to_minutes(curr_block.start_time)) + curr_block.duration_minutes
+            if activity.subtype and activity.subtype in scheduled_subtypes.get(day_offset, set()):
+                continue
 
-                new_start_time = _minutes_to_time(new_start)
-                new_end_time = _minutes_to_time(new_start + curr_block.duration_minutes)
+            slot = _find_slot(activity, day_sch, day, ctx)
+            if slot is not None:
+                _place_activity(activity, day_sch, slot, ctx)
+                if activity.subtype:
+                    scheduled_subtypes.setdefault(day_offset, set()).add(activity.subtype)
+                placed = True
+                logger.info(
+                    "Week fallback: '%s' moved from %s to %s",
+                    activity.name, entry.target_date, day,
+                )
+                break
 
-                # Verify no overlap (excluding the current block itself)
-                can_move = True
-                for other_block in day_schedule.blocks:
-                    if other_block.block_id == curr_block.block_id:
+        # If activity didn't fit, try its backups on other days in the week
+        if not placed:
+            for backup_id in activity.backup_activity_ids:
+                backup_act = ctx.activity_map.get(backup_id)
+                if backup_act is None:
+                    continue
+                for day_offset in range(7):
+                    if day_offset == target_offset:
                         continue
-                    if other_block.block_type == ScheduleBlockType.TRAVEL_DAY:
+                    day = start_of_week + timedelta(days=day_offset)
+                    day_sch = day_index.get(day)
+                    if day_sch is None or day_sch.travel_adherence == TravelAdherence.BREAK:
                         continue
 
-                    other_start = _time_to_minutes(other_block.start_time)
-                    other_end = _time_to_minutes(other_block.end_time)
+                    if backup_act.subtype and backup_act.subtype in scheduled_subtypes.get(day_offset, set()):
+                        continue
 
-                    if new_start < other_end and (new_start + curr_block.duration_minutes) > other_start:
-                        can_move = False
-                        break
-
-                if can_move:
-                    curr_block.start_time = new_start_time
-                    curr_block.end_time = new_end_time
-
-                    # Remove the redundant transit block for this activity
-                    day_schedule.blocks = [
-                        b for b in day_schedule.blocks
-                        if not (
-                            b.block_type == ScheduleBlockType.TRANSIT
-                            and b.activity_id == curr_block.activity_id
+                    slot = _find_slot(backup_act, day_sch, day, ctx)
+                    if slot is not None:
+                        _place_activity(backup_act, day_sch, slot, ctx)
+                        if backup_act.subtype:
+                            scheduled_subtypes.setdefault(day_offset, set()).add(backup_act.subtype)
+                        placed = True
+                        logger.info(
+                            "Week fallback (backup): '%s' placed for '%s' on %s",
+                            backup_act.name, activity.name, day,
                         )
-                    ]
+                        break
+                if placed:
+                    break
 
-    # Re-sort blocks
-    day_schedule.blocks.sort(key=lambda b: _time_to_minutes(b.start_time))
+        if not placed:
+            remaining.append(entry)
+
+    # Replace the full unscheduled list with what's left
+    schedule.unscheduled = remaining
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1033,28 +1106,112 @@ def _optimize_same_location(day_schedule: DaySchedule) -> None:
 # ═══════════════════════════════════════════════════════════
 
 
+def _compute_weekly_assignments(
+    activities: list[Activity],
+    client: ClientAvailability,
+) -> dict[str, list[int]]:
+    """
+    Assign each weekly activity to specific weekdays based on load.
+
+    For each activity instance, picks the least-loaded compatible day.
+    Available time for a day = 1440 - sleep - work(if activity is non-home
+    and weekday) - already scheduled duration.
+
+    This naturally places non-home activities on weekends (more available
+    time) and home activities across all days evenly.
+
+    Args:
+        activities: All activities to assign.
+        client: Client availability (sleep/work times).
+
+    Returns:
+        Dict mapping activity_id -> sorted list of weekday indices (0=Mon).
+    """
+    sleep_minutes = 0.0
+    if client.sleep_start and client.sleep_end:
+        sleep_start = _time_to_minutes(client.sleep_start)
+        sleep_end = _time_to_minutes(client.sleep_end)
+        if sleep_start > sleep_end:
+            sleep_minutes = 1440.0 - sleep_start + sleep_end
+        else:
+            sleep_minutes = float(sleep_end - sleep_start)
+
+    work_minutes = 0.0
+    if client.work_start and client.work_end:
+        work_minutes = float(
+            _time_to_minutes(client.work_end) - _time_to_minutes(client.work_start)
+        )
+
+    day_load: list[float] = [0.0] * 7
+    day_subtypes: list[dict[str, int]] = [{} for _ in range(7)]
+    day_type_counts: list[dict[ActivityType, int]] = [{} for _ in range(7)]
+    assignments: dict[str, list[int]] = {}
+
+    weekly_acts = sorted(
+        [a for a in activities
+         if a.frequency_period == FrequencyPeriod.WEEKLY and a.frequency_times < 7],
+        key=lambda a: a.priority,
+        reverse=True,
+    )
+
+    for act in weekly_acts:
+        freq = act.frequency_times
+        act_days: list[int] = []
+        available_days = list(range(7))
+        for _ in range(freq):
+            # Filter out days already at the subtype limit for this activity
+            days_pool = available_days
+            if act.subtype:
+                days_pool = [d for d in available_days
+                             if day_subtypes[d].get(act.subtype, 0)
+                             < MAX_SAME_SUBTYPE_PER_DAY]
+                if not days_pool:
+                    days_pool = available_days
+            weights: list[float] = []
+            for d in days_pool:
+                avail = 1440.0 - sleep_minutes - day_load[d]
+                if act.location_name not in ("home", LOCATION_ANYWHERE) and d < 5:
+                    avail -= work_minutes
+                # Diversity bonus: penalize days already heavy on this activity type
+                same_type_count = day_type_counts[d].get(act.activity_type, 0)
+                avail /= (1.0 + same_type_count)
+                weights.append(max(avail, 1.0))
+            chosen = random.choices(days_pool, weights=weights, k=1)[0]
+            act_days.append(chosen)
+            day_load[chosen] += float(act.duration_minutes)
+            if act.subtype:
+                day_subtypes[chosen][act.subtype] = day_subtypes[chosen].get(act.subtype, 0) + 1
+            day_type_counts[chosen][act.activity_type] = day_type_counts[chosen].get(act.activity_type, 0) + 1
+            available_days.remove(chosen)
+        assignments[act.id] = sorted(act_days)
+
+    return assignments
+
+
 def _get_activities_for_day(
     activities: list[Activity],
     target_date: date,
     schedule_start: date,
+    weekly_assignments: dict[str, list[int]] | None = None,
 ) -> list[Activity]:
     """
     Determine which activities need to be scheduled on a given day.
 
     Applies frequency logic: daily activities every day, weekly
-    activities spread across the week, monthly activities once.
+    activities spread across the week (using pre-computed load-aware
+    assignments), monthly activities once.
 
     Args:
         activities: All activities in the action plan.
         target_date: The target date.
         schedule_start: Start of the schedule window.
+        weekly_assignments: Pre-computed day assignments for weekly activities.
 
     Returns:
         List of activities that should be scheduled on this day.
     """
     dow = _get_day_of_week(target_date)
     day_of_week_idx = target_date.weekday()  # 0=Monday
-    week_number = (target_date - schedule_start).days // 7
     day_in_month = target_date.day
 
     result: list[Activity] = []
@@ -1067,13 +1224,13 @@ def _get_activities_for_day(
         if activity.frequency_period == FrequencyPeriod.DAILY:
             result.append(activity)
         elif activity.frequency_period == FrequencyPeriod.WEEKLY:
-            # Spread across the week: assign specific days based on frequency
             freq = activity.frequency_times
             if freq >= 7:
                 result.append(activity)
             else:
-                # Distribute evenly: e.g., 3x/week → Mon, Wed, Fri
-                days_for_freq = _distribute_days(freq)
+                days_for_freq: list[int] = []
+                if weekly_assignments and activity.id in weekly_assignments:
+                    days_for_freq = weekly_assignments[activity.id]
                 if day_of_week_idx in days_for_freq:
                     result.append(activity)
         elif activity.frequency_period == FrequencyPeriod.MONTHLY:
@@ -1090,33 +1247,93 @@ def _get_activities_for_day(
                 elif 14 < day_in_month <= 21 and day_of_week_idx == 1:
                     result.append(activity)
             else:
-                # Weekly (treat as weekly)
-                days_for_freq = _distribute_days(min(freq, 5))
+                # Monthly activities with freq > 2: distribute evenly within month
+                if weekly_assignments and activity.id in weekly_assignments:
+                    days_for_freq = weekly_assignments[activity.id]
+                else:
+                    days_for_freq = [0, 2, 4, 1, 3]  # fallback
                 if day_of_week_idx in days_for_freq:
                     result.append(activity)
 
     return result
 
 
-def _distribute_days(freq: int) -> list[int]:
+def _cross_day_fallback(
+    schedule: FullSchedule,
+    ctx: SchedulerContext,
+    start_date: date,
+    end_date: date,
+) -> int:
     """
-    Distribute a frequency across weekdays.
+    Phase 5: Cross-day fallback for unscheduled activities.
 
-    Args:
-        freq: Number of times per week.
+    Attempts to reschedule activities that couldn't fit on their target day
+    onto any other day in the schedule window that doesn't already have
+    an activity with the same subtype. Each attempted day is tried in
+    chronological order; the first compatible slot wins.
 
     Returns:
-        List of weekday indices (0=Monday).
+        Number of activities successfully recovered.
     """
-    distributions: dict[int, list[int]] = {
-        1: [1],               # Tuesday
-        2: [0, 3],            # Monday, Thursday
-        3: [0, 2, 4],         # Monday, Wednesday, Friday
-        4: [0, 1, 3, 4],     # Mon, Tue, Thu, Fri
-        5: [0, 1, 2, 3, 4],  # Monday - Friday
-        6: [0, 1, 2, 3, 4, 5],  # Mon - Sat
-    }
-    return distributions.get(freq, [0])
+    scheduled_subtypes: dict[int, set[str]] = {}
+    for day_sch in schedule.days:
+        offset = (day_sch.date - start_date).days
+        subtypes: set[str] = set()
+        for block in day_sch.blocks:
+            if block.block_type == ScheduleBlockType.ACTIVITY and block.activity_id:
+                act = ctx.activity_map.get(block.activity_id)
+                if act and act.subtype:
+                    subtypes.add(act.subtype)
+        scheduled_subtypes[offset] = subtypes
+
+    recovered = 0
+    remaining: list[UnscheduledActivity] = []
+
+    for entry in schedule.unscheduled:
+        activity = ctx.activity_map.get(entry.activity_id)
+        if activity is None:
+            remaining.append(entry)
+            continue
+
+        if activity.activity_type in (ActivityType.FOOD_CONSUMPTION, ActivityType.MEDICATION):
+            remaining.append(entry)
+            continue
+
+        target_offset = (entry.target_date - start_date).days
+
+        placed = False
+        for day_sch in schedule.days:
+            day_offset = (day_sch.date - start_date).days
+
+            if day_offset == target_offset:
+                continue
+
+            if activity.subtype and activity.subtype in scheduled_subtypes.get(day_offset, set()):
+                continue
+
+            if day_sch.travel_adherence == TravelAdherence.BREAK:
+                continue
+
+            slot = _find_slot(activity, day_sch, day_sch.date, ctx)
+            if slot is not None:
+                _place_activity(activity, day_sch, slot, ctx)
+
+                if activity.subtype:
+                    scheduled_subtypes.setdefault(day_offset, set()).add(activity.subtype)
+
+                recovered += 1
+                placed = True
+                logger.info(
+                    "Cross-day fallback: '%s' moved from %s to %s",
+                    activity.name, entry.target_date, day_sch.date,
+                )
+                break
+
+        if not placed:
+            remaining.append(entry)
+
+    schedule.unscheduled = remaining
+    return recovered
 
 
 def generate_schedule(
@@ -1126,6 +1343,7 @@ def generate_schedule(
     client: ClientAvailability,
     start_date: date,
     end_date: date,
+    plan_ids: set[str] | None = None,
 ) -> FullSchedule:
     """
     Generate a complete schedule for the given date range.
@@ -1133,12 +1351,14 @@ def generate_schedule(
     This is the main entry point for the scheduling engine.
 
     Args:
-        activities: All activities from the action plan, sorted by priority.
+        activities: All activities (action plan + backup pool), sorted by priority.
         resources: All resources.
         resource_availability: Availability data for each resource.
         client: Client availability and travel plans.
         start_date: First day of the schedule.
         end_date: Last day of the schedule (inclusive).
+        plan_ids: Set of activity IDs that form the action plan.
+                  If None, all activities are scheduled.
 
     Returns:
         A FullSchedule containing day-by-day schedules and unscheduled items.
@@ -1152,11 +1372,20 @@ def generate_schedule(
         end_date=end_date,
     )
 
+    # Only schedule action plan activities.
+    # The full activity pool remains in ctx.activity_map for backup resolution.
+    if plan_ids is None:
+        plan = activities[:]
+    else:
+        plan = [a for a in activities if a.id in plan_ids]
+
     schedule = FullSchedule(start_date=start_date, end_date=end_date)
 
-    # Categorize activities (exclude backup-only from scheduling; they stay
-    # in ctx.activity_map so the scheduler can resolve backup references)
-    schedulable = [a for a in activities if not a.is_backup_only]
+    # Pre-compute load-aware weekly assignments for action plan only
+    weekly_assignments = _compute_weekly_assignments(plan, client)
+
+    # Categorize activities
+    schedulable = plan
 
     meal_activities = [
         a for a in schedulable
@@ -1172,8 +1401,18 @@ def generate_schedule(
         if a not in meal_activities and a not in med_activities
     ]
 
-    # Sort others by priority
-    other_activities.sort(key=lambda a: a.priority)
+    # Sort others: most constrained first (longer, larger gap, more transit),
+    # then by priority as tiebreaker. This ensures hard-to-fit activities
+    # like HIIT (long + 60-min gap + transit) get placed before flexible
+    # ones like Brisk Walk (short + 5-min gap).
+    other_activities.sort(key=lambda a: (
+        -(a.duration_minutes + a.min_gap_after_minutes + a.transit_minutes_from_home),
+        a.priority,
+    ))
+
+    # Track skip statistics for monitoring
+    skip_stats: dict[str, int] = {}
+    skip_by_type: dict[str, int] = {}
 
     current_date = start_date
     while current_date <= end_date:
@@ -1205,9 +1444,9 @@ def generate_schedule(
             )
 
         # Get today's activities
-        todays_meals = [a for a in meal_activities if a in _get_activities_for_day(meal_activities, current_date, start_date)]
-        todays_meds = [a for a in med_activities if a in _get_activities_for_day(med_activities, current_date, start_date)]
-        todays_other = [a for a in other_activities if a in _get_activities_for_day(other_activities, current_date, start_date)]
+        todays_meals = [a for a in meal_activities if a in _get_activities_for_day(meal_activities, current_date, start_date, weekly_assignments)]
+        todays_meds = [a for a in med_activities if a in _get_activities_for_day(med_activities, current_date, start_date, weekly_assignments)]
+        todays_other = [a for a in other_activities if a in _get_activities_for_day(other_activities, current_date, start_date, weekly_assignments)]
 
         # PHASE 1: Anchor meals
         # During BREAK travel, still schedule meals for medication anchoring
@@ -1224,16 +1463,19 @@ def generate_schedule(
         if travel_plan and travel_plan.adherence == TravelAdherence.BREAK:
             # BREAK mode: skip everything except already-scheduled meals & meds
             for activity in todays_other:
+                reason = f"Travel BREAK mode ({travel_plan.destination})"
                 schedule.unscheduled.append(
                     UnscheduledActivity(
                         activity_id=activity.id,
                         activity_name=activity.name,
                         activity_type=activity.activity_type,
                         target_date=current_date,
-                        reason=f"Travel BREAK mode ({travel_plan.destination})",
+                        reason=reason,
                         adjustment=activity.skip_adjustment,
                     )
                 )
+                skip_stats[reason] = skip_stats.get(reason, 0) + 1
+                skip_by_type[activity.activity_type.value] = skip_by_type.get(activity.activity_type.value, 0) + 1
         else:
             for activity in todays_other:
                 success = _try_schedule_activity(
@@ -1241,6 +1483,15 @@ def generate_schedule(
                 )
                 if not success:
                     reason = "No available slot found"
+                    subtype_collision = False
+                    for block in day_schedule.blocks:
+                        if block.block_type == ScheduleBlockType.ACTIVITY and block.activity_id:
+                            scheduled_act = ctx.activity_map.get(block.activity_id)
+                            if scheduled_act and scheduled_act.subtype == activity.subtype:
+                                subtype_collision = True
+                                break
+                    if subtype_collision:
+                        reason = f"Subtype collision (already have '{activity.subtype}' today)"
                     if travel_plan:
                         reason = f"Travel to {travel_plan.destination} ({travel_plan.adherence.value}) — no remote backup available"
                     schedule.unscheduled.append(
@@ -1253,11 +1504,57 @@ def generate_schedule(
                             adjustment=activity.skip_adjustment,
                         )
                     )
+                    skip_stats[reason] = skip_stats.get(reason, 0) + 1
+                    skip_by_type[activity.activity_type.value] = skip_by_type.get(activity.activity_type.value, 0) + 1
 
-        # PHASE 4: Same-location optimization
-        _optimize_same_location(day_schedule)
+        # PHASE 4: Week-based fallback — try unscheduled activities on other
+        # days in the same 7-day window (and their backups), before giving up.
+        if schedule.unscheduled:
+            week_unscheduled = [
+                u for u in schedule.unscheduled
+                if abs((u.target_date - current_date).days) <= 3
+            ]
+            if week_unscheduled:
+                _try_week_fallback(week_unscheduled, schedule, ctx, current_date)
 
         schedule.days.append(day_schedule)
         current_date += timedelta(days=1)
+
+    # PHASE 4: Week-based fallback — for each week, try to re-place unscheduled
+    # activities on other days in that week (then their backups).
+    weeks = (end_date - start_date).days // 7 + 1
+    for w in range(weeks):
+        week_start = start_date + timedelta(days=w * 7)
+        week_end = min(week_start + timedelta(days=6), end_date)
+        week_unscheduled = [
+            u for u in schedule.unscheduled
+            if week_start <= u.target_date <= week_end
+        ]
+        if week_unscheduled:
+            _try_week_fallback(week_unscheduled, schedule, ctx, week_start)
+
+    # PHASE 5: Cross-day fallback — try to place skipped activities on other days
+    # that don't already have their subtype.
+    recovered = _cross_day_fallback(schedule, ctx, start_date, end_date)
+    if recovered:
+        logger.info(
+            "PHASE 5: Cross-day fallback recovered %d activities", recovered
+        )
+
+    # Log skip statistics for monitoring (helps identify if templates need adjustment)
+    if skip_stats:
+        total_skipped = sum(skip_stats.values())
+        logger.warning(
+            "SCHEDULE SUMMARY: %d activities skipped out of %d activity-days (%.1f%% skip rate)",
+            total_skipped,
+            len(schedule.days) * len([a for a in activities if a.activity_type not in (ActivityType.FOOD_CONSUMPTION, ActivityType.MEDICATION)]),
+            total_skipped / max(1, len(schedule.days) * len([a for a in activities if a.activity_type not in (ActivityType.FOOD_CONSUMPTION, ActivityType.MEDICATION)])) * 100,
+        )
+        for reason, count in sorted(skip_stats.items(), key=lambda x: -x[1]):
+            logger.warning("  Skip reason '%s': %d", reason, count)
+        for atype, count in sorted(skip_by_type.items(), key=lambda x: -x[1]):
+            logger.warning("  By type '%s': %d", atype, count)
+    else:
+        logger.info("SCHEDULE SUMMARY: No activities skipped")
 
     return schedule

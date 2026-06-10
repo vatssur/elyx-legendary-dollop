@@ -103,6 +103,19 @@ class ScheduleBlockType(str, Enum):
     TRAVEL_DAY = "TRAVEL_DAY"
 
 
+# Location sentinel: medications use this to indicate they don't
+# conflict with activities at physical locations
+LOCATION_ANYWHERE = "anywhere"
+
+# Location name constants — used in scheduler transit logic
+LOCATION_HOME = "home"
+LOCATION_GYM = "gym"
+
+# Subtype constants — used to map food subtypes to MealType
+SUBTYPE_BREAKFAST = "breakfast"
+SUBTYPE_LUNCH = "lunch"
+SUBTYPE_DINNER = "dinner"
+
 # ═══════════════════════════════════════════════════════════
 #  ACTIVITY (Action Plan Item)
 # ═══════════════════════════════════════════════════════════
@@ -149,7 +162,9 @@ class Activity:
     prep_duration_minutes: int  # 0 = no prep
     prep_buffer_minutes: int  # Min gap between prep end and activity start
 
-    # Property 8: Backup / substitute activities
+    # Property 8: Subtype grouping
+    subtype: str = ""
+    is_necessary: bool = False
     backup_activity_ids: list[str] = field(default_factory=list)
 
     # Property 9: Skip adjustments
@@ -174,10 +189,6 @@ class Activity:
     # Scheduling metadata
     min_gap_after_minutes: int = 0
     energy_cost: int = 1  # 1-5 scale (for future intensity balancing)
-
-    # Whether this activity is only a backup/alternative (not independently scheduled)
-    is_backup_only: bool = False
-
 
 # ═══════════════════════════════════════════════════════════
 #  RESOURCES
@@ -316,8 +327,6 @@ class ScheduleBlock:
     facilitator_name: str = ""
     location: str = ""
     is_remote: bool = False
-    is_backup: bool = False
-    original_activity_id: Optional[str] = None
     metrics_to_collect: list[str] = field(default_factory=list)
     notes: str = ""
     block_id: str = field(default_factory=_generate_block_id)
